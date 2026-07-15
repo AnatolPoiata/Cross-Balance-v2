@@ -19,7 +19,7 @@ from sklearn.model_selection import StratifiedKFold
 from .datasets import PROJECT_ROOT, SYNTHETIC_RATIOS, load_synthetic
 from .methods import build_methods
 from .metrics import METRIC_NAMES, compute_metrics
-from .real_datasets import REAL_DATASETS
+from .real_datasets import REAL_DATASETS, stratified_subsample
 from .report import summarize, write_report
 
 SYNTHETIC_RESULTS_DIR = PROJECT_ROOT / "results" / "phase_synthetic"
@@ -86,6 +86,8 @@ def main(argv=None):
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--methods", nargs="*", default=None,
                          help="subset of method names to run (default: all)")
+    parser.add_argument("--max-samples", type=int, default=50_000,
+                         help="real datasets only: cap dataset size via stratified subsampling")
     args = parser.parse_args(argv)
 
     kind, _, key_arg = args.dataset.partition(":")
@@ -106,6 +108,7 @@ def main(argv=None):
                 X, y = REAL_DATASETS[key]()
             except FileNotFoundError as exc:
                 parser.exit(1, f"{exc}\n")
+            X, y = stratified_subsample(X, y, args.max_samples, random_state=args.seed)
             _run_and_report(key, X, y, REAL_RESULTS_DIR / key, f"real:{key}",
                              args.folds, args.seed, args.methods)
     else:

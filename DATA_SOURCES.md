@@ -4,43 +4,54 @@ Each dataset must be downloaded manually (no Kaggle/UCI credentials are
 configured for this project) and placed under `data/raw/<name>/`. Nothing
 under `data/raw/` is committed to git (see `.gitignore`).
 
-| name (loader key) | source | download | place file(s) as |
+`bioassay` and `nih_chest_xray_sample` are **excluded per project decision**
+(multi-file collection needing a per-assay choice; image data needing a
+separate embedding pipeline, respectively) — no loaders exist for them.
+
+| name (loader key) | source | actual file(s) in `data/raw/<name>/` | native imbalance |
 |---|---|---|---|
-| `communities_crime` | UCI | https://archive.ics.uci.edu/dataset/183/communities+and+crime | `data/raw/communities_crime/communities.data` (+ optionally `communities.names`) |
-| `credit_card_fraud` | Kaggle `mlg-ulb/creditcardfraud` | https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud | `data/raw/credit_card_fraud/creditcard.csv` |
-| `nih_chest_xray_sample` | Kaggle `nih-chest-xrays/sample` | https://www.kaggle.com/datasets/nih-chest-xrays/sample | `data/raw/nih_chest_xray_sample/` (extract as-is) — **see note below** |
-| `bioassay` | Kaggle `uciml/bioassay-datasets` | https://www.kaggle.com/datasets/uciml/bioassay-datasets | `data/raw/bioassay/*.csv` (this is a collection of many PubChem assay CSVs — see note below) |
-| `synthetic_financial_fraud` | Kaggle `umitka/synthetic-financial-fraud-dataset` | https://www.kaggle.com/datasets/umitka/synthetic-financial-fraud-dataset | `data/raw/synthetic_financial_fraud/*.csv` |
-| `fraud_detection_transactions` | Kaggle `samayashar/fraud-detection-transactions-dataset` | https://www.kaggle.com/datasets/samayashar/fraud-detection-transactions-dataset | `data/raw/fraud_detection_transactions/*.csv` |
-| `credit_card_fraud_2023` | Kaggle `nelgiriyewithana/credit-card-fraud-detection-dataset-2023` | https://www.kaggle.com/datasets/nelgiriyewithana/credit-card-fraud-detection-dataset-2023 | `data/raw/credit_card_fraud_2023/*.csv` |
+| `communities_crime` | UCI: https://archive.ics.uci.edu/dataset/183/communities+and+crime | `communities.data`, `communities.names` | regression — binarized, top 5% `ViolentCrimesPerPop` |
+| `credit_card_fraud` | Kaggle `kartik2112/fraud-detection` (not mlg-ulb — see note) | `fraudTrain.csv`, `fraudTest.csv` | ~172:1 (0.58% fraud) |
+| `credit_card_fraud_2023` | Kaggle `nelgiriyewithana/credit-card-fraud-detection-dataset-2023` | `creditcard_2023.csv` | **50:50 — not imbalanced**, see note |
+| `synthetic_financial_fraud` | Kaggle `umitka/synthetic-financial-fraud-dataset` (PaySim) | `PS_20174392719_1491204439457_log.csv` | ~773:1 (0.13% fraud) |
+| `fraud_detection_transactions` | Kaggle `samayashar/fraud-detection-transactions-dataset` | `synthetic_fraud_dataset.csv` | ~2.1:1 (32% fraud) — mild |
+| `ailerons` | https://github.com/antoniopedropi/Datasets-ImbalancedRegression | `ailerons.csv` | regression — binarized, top 5% `Goal` |
+| `segment0` | KEEL: https://sci2s.ugr.es/keel/imbalanced.php | `segment0.dat` (`data/raw/segemnt0/`, note the folder typo) | ~6:1 (14.3% minority) |
+| `shuttle_2_vs_5` | KEEL: https://sci2s.ugr.es/keel/dataset.php?cod=1342 | `shuttle-2_vs_5.dat` | ~67:1 (1.5% minority) |
 
 Loaders live in `benchmarks/real_datasets.py`. Run
-`python -m benchmarks.run_benchmark --dataset real:<name>` once the file is
-in place.
+`python -m benchmarks.run_benchmark --dataset real:<name>` (or `real:all`).
+Datasets larger than `--max-samples` (default 50,000) are stratified-
+subsampled, preserving the original class ratio (with a floor on minority
+count so extreme-imbalance sets like PaySim still carry enough positives
+for k-fold CV) — see `stratified_subsample()` in `real_datasets.py`.
 
 ## Notes / open items
 
-- **`communities_crime` is a regression dataset.** The loader binarizes it:
-  the top `top_pct` (default 5%) of communities by `ViolentCrimesPerPop`
-  become the positive ("high-crime") class, matching the project's target
-  imbalance range. This is a modeling choice, not the dataset's native
-  framing — reconsider `top_pct` if a different ratio is wanted.
-- **`bioassay` is a collection, not one file.** Kaggle's `uciml/bioassay-
-  datasets` bundles many separate PubChem AID assay CSVs. The loader picks
-  the first `*.csv` it finds in the folder and prints which one — drop only
-  the specific assay file(s) you want benchmarked in there, or pass
-  `filename=` explicitly to `load_bioassay()`.
+- **`credit_card_fraud` is not the mlg-ulb dataset originally planned.**
+  The file placed here is Kaggle `kartik2112/fraud-detection`
+  (`fraudTrain.csv`/`fraudTest.csv`: simulated transactions with cardholder
+  PII — name, address, DOB, card number, merchant, job title, lat/long).
+  The loader drops direct identifiers and free-text/high-cardinality
+  columns, keeps `amt`, `category`, `gender`, geography, `unix_time`,
+  `city_pop`, and concatenates both files. Target: `is_fraud`.
+- **`credit_card_fraud_2023` is a perfectly balanced 50:50 dataset**
+  (284,315 fraud / 284,315 non-fraud) — not actually imbalanced, despite
+  the name. Still included per the original dataset list, but it isn't a
+  meaningful imbalance-handling comparison on its own; treat its results as
+  a "control" data point rather than part of the core imbalance story.
+- **`communities_crime` / `ailerons` are regression datasets.** Both are
+  binarized by taking the top `top_pct` (default 5%) of rows by the
+  continuous target as the positive class — a modeling choice, not the
+  dataset's native framing.
+- **`segment0` / `shuttle_2_vs_5`** are parsed from KEEL's `.dat` format
+  (`@relation`/`@attribute`/`@data` header, comma-separated rows, last
+  column `Class` with `{positive, negative}` labels — `positive` is the
+  minority class by KEEL convention, mapped to `1`).
 - **`synthetic_financial_fraud`, `fraud_detection_transactions`,
-  `credit_card_fraud_2023`**: schemas weren't verified against the actual
-  files (not yet downloaded as of writing), so these use a generic loader
-  that auto-detects the label column from common names (`Class`, `isFraud`,
-  `is_fraud`, `fraud`, `fraud_bool`, `target`, `label`, `Is Fraudulent`,
-  `outcome`) and one-hot encodes low-cardinality categoricals. If the label
-  column isn't auto-detected, `load_generic_tabular(name, target_col=...)`
-  takes an explicit override — it will raise a clear error listing the
-  columns it saw rather than guessing wrong.
-- **`nih_chest_xray_sample` is image data**, not tabular. It needs a
-  fundamentally different pipeline (image loading + CNN/embedding feature
-  extraction) than the rest of this benchmark. No loader is implemented yet
-  — flagging this for a scoping decision before building it, rather than
-  bolting on an untested image pipeline.
+  `credit_card_fraud_2023`** use the generic auto-detecting tabular loader
+  (`load_generic_tabular`): label column found via common-name matching
+  (`Class`, `isFraud`, `Fraud_Label`, etc.), ID-like columns dropped,
+  low-cardinality categoricals one-hot encoded, high-cardinality
+  categoricals (raw timestamps, account/user IDs) dropped. Verified against
+  the actual files, not guessed.
