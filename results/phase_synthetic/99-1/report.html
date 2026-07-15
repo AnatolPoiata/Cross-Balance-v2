@@ -1,0 +1,153 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Cross-Balance Benchmark — synthetic 99-1</title>
+<style>
+body { font-family: -apple-system, sans-serif; margin: 2rem; color: #1a1a1a; }
+table.results { border-collapse: collapse; width: 100%; }
+table.results th, table.results td { padding: 0.4rem 0.8rem; text-align: right; border-bottom: 1px solid #ddd; }
+table.results th:nth-child(2), table.results td:nth-child(2) { text-align: left; }
+table.results tr:first-child { font-weight: bold; background: #f0f7ff; }
+h1 { font-size: 1.4rem; }
+p.meta { color: #666; }
+</style>
+</head><body>
+<h1>Cross-Balance Benchmark — synthetic 99-1</h1>
+<p class="meta">Top method by AUCPR: <strong>Baseline</strong></p>
+<table class="dataframe results">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Rank</th>
+      <th>Method</th>
+      <th>AUCPR</th>
+      <th>PRECISION</th>
+      <th>RECALL</th>
+      <th>MACRO F1</th>
+      <th>G MEAN</th>
+      <th>MCC</th>
+      <th>BALANCED ACCURACY</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Baseline</td>
+      <td>0.1552</td>
+      <td>0.3000</td>
+      <td>0.0100</td>
+      <td>0.5060</td>
+      <td>0.0548</td>
+      <td>0.0544</td>
+      <td>0.5050</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>BalancedRandomForest</td>
+      <td>0.1538</td>
+      <td>0.0915</td>
+      <td>0.4260</td>
+      <td>0.5564</td>
+      <td>0.6300</td>
+      <td>0.1724</td>
+      <td>0.6809</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>BorderlineSMOTE</td>
+      <td>0.1030</td>
+      <td>0.0359</td>
+      <td>0.5233</td>
+      <td>0.4724</td>
+      <td>0.6410</td>
+      <td>0.0914</td>
+      <td>0.6555</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>CrossBalance</td>
+      <td>0.0936</td>
+      <td>0.0528</td>
+      <td>0.3885</td>
+      <td>0.5165</td>
+      <td>0.5837</td>
+      <td>0.1099</td>
+      <td>0.6417</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>SMOTE</td>
+      <td>0.0908</td>
+      <td>0.0318</td>
+      <td>0.6572</td>
+      <td>0.4396</td>
+      <td>0.6760</td>
+      <td>0.0929</td>
+      <td>0.6769</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>SMOTETomek</td>
+      <td>0.0908</td>
+      <td>0.0318</td>
+      <td>0.6572</td>
+      <td>0.4396</td>
+      <td>0.6760</td>
+      <td>0.0929</td>
+      <td>0.6769</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>ADASYN</td>
+      <td>0.0871</td>
+      <td>0.0302</td>
+      <td>0.6606</td>
+      <td>0.4318</td>
+      <td>0.6687</td>
+      <td>0.0877</td>
+      <td>0.6695</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>ClassWeighted</td>
+      <td>0.0867</td>
+      <td>0.0321</td>
+      <td>0.6743</td>
+      <td>0.4383</td>
+      <td>0.6824</td>
+      <td>0.0957</td>
+      <td>0.6830</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>RandomOverSampler</td>
+      <td>0.0853</td>
+      <td>0.0320</td>
+      <td>0.6709</td>
+      <td>0.4385</td>
+      <td>0.6812</td>
+      <td>0.0951</td>
+      <td>0.6818</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td>RandomUnderSampler</td>
+      <td>0.0762</td>
+      <td>0.0294</td>
+      <td>0.6878</td>
+      <td>0.4235</td>
+      <td>0.6714</td>
+      <td>0.0877</td>
+      <td>0.6724</td>
+    </tr>
+    <tr>
+      <td>11</td>
+      <td>EasyEnsemble</td>
+      <td>0.0733</td>
+      <td>0.0289</td>
+      <td>0.6740</td>
+      <td>0.4227</td>
+      <td>0.6641</td>
+      <td>0.0842</td>
+      <td>0.6652</td>
+    </tr>
+  </tbody>
+</table>
+</body></html>
