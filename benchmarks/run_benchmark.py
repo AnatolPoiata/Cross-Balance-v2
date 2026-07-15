@@ -3,6 +3,7 @@ chosen dataset with stratified k-fold CV.
 
     python -m benchmarks.run_benchmark --dataset synthetic:99-1 --folds 10
     python -m benchmarks.run_benchmark --dataset synthetic:all --folds 5
+    python -m benchmarks.run_benchmark --dataset real:credit_card_fraud --folds 10
 """
 
 import argparse
@@ -18,9 +19,11 @@ from sklearn.model_selection import StratifiedKFold
 from .datasets import PROJECT_ROOT, SYNTHETIC_RATIOS, load_synthetic
 from .methods import build_methods
 from .metrics import METRIC_NAMES, compute_metrics
+from .real_datasets import REAL_DATASETS
 from .report import summarize, write_report
 
-RESULTS_DIR = PROJECT_ROOT / "results" / "phase_synthetic"
+SYNTHETIC_RESULTS_DIR = PROJECT_ROOT / "results" / "phase_synthetic"
+REAL_RESULTS_DIR = PROJECT_ROOT / "results" / "phase_real"
 
 
 def run_one_dataset(dataset_key, X, y, folds, seed, methods=None):
@@ -62,33 +65,51 @@ def run_one_dataset(dataset_key, X, y, folds, seed, methods=None):
     return summary
 
 
+def _run_and_report(key, X, y, out_dir, title, folds, seed, methods):
+    print(f"=== {title} (folds={folds}) ===")
+    print(f"  shape={X.shape}, minority_count={int((y == 1).sum())}")
+
+    summary = run_one_dataset(key, X, y, folds, seed, methods=methods)
+    csv_path, html_path = write_report(summary, out_dir, title=f"Cross-Balance Benchmark — {title}")
+    print(summary[["rank", "method", "aucpr_mean", "recall_mean", "precision_mean", "mcc_mean"]]
+          .to_string(index=False))
+    print(f"  -> {csv_path}\n  -> {html_path}\n")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", default="synthetic:99-1",
-                         help="synthetic:<99-1|99-2|99-5|all>")
+                         help="synthetic:<99-1|99-2|99-5|all> or real:<name> (see DATA_SOURCES.md)")
     parser.add_argument("--folds", type=int, default=10)
-    parser.add_argument("--n-samples", type=int, default=20_000)
+    parser.add_argument("--n-samples", type=int, default=20_000,
+                         help="synthetic datasets only")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--methods", nargs="*", default=None,
                          help="subset of method names to run (default: all)")
     args = parser.parse_args(argv)
 
-    if not args.dataset.startswith("synthetic:"):
-        parser.error("Only 'synthetic:<ratio>' datasets are supported in Phase A.")
-    ratio_key = args.dataset.split(":", 1)[1]
-    ratio_keys = list(SYNTHETIC_RATIOS) if ratio_key == "all" else [ratio_key]
-
-    for key in ratio_keys:
-        print(f"=== synthetic:{key} (n_samples={args.n_samples}, folds={args.folds}) ===")
-        X, y = load_synthetic(key, n_samples=args.n_samples, random_state=args.seed)
-        print(f"  shape={X.shape}, minority_count={int((y == 1).sum())}")
-
-        summary = run_one_dataset(key, X, y, args.folds, args.seed, methods=args.methods)
-        out_dir = RESULTS_DIR / key
-        csv_path, html_path = write_report(summary, out_dir, title=f"Cross-Balance Benchmark — synthetic {key}")
-        print(summary[["rank", "method", "aucpr_mean", "recall_mean", "precision_mean", "mcc_mean"]]
-              .to_string(index=False))
-        print(f"  -> {csv_path}\n  -> {html_path}\n")
+    kind, _, key_arg = args.dataset.partition(":")
+    if kind == "synthetic":
+        ratio_keys = list(SYNTHETIC_RATIOS) if key_arg == "all" else [key_arg]
+        for key in ratio_keys:
+            if key not in SYNTHETIC_RATIOS:
+                parser.error(f"Unknown synthetic dataset '{key}'. Choose from {list(SYNTHETIC_RATIOS)}")
+            X, y = load_synthetic(key, n_samples=args.n_samples, random_state=args.seed)
+            _run_and_report(key, X, y, SYNTHETIC_RESULTS_DIR / key, f"synthetic {key}",
+                             args.folds, args.seed, args.methods)
+    elif kind == "real":
+        real_keys = list(REAL_DATASETS) if key_arg == "all" else [key_arg]
+        for key in real_keys:
+            if key not in REAL_DATASETS:
+                parser.error(f"Unknown real dataset '{key}'. Choose from {list(REAL_DATASETS)}")
+            try:
+                X, y = REAL_DATASETS[key]()
+            except FileNotFoundError as exc:
+                parser.exit(1, f"{exc}\n")
+            _run_and_report(key, X, y, REAL_RESULTS_DIR / key, f"real:{key}",
+                             args.folds, args.seed, args.methods)
+    else:
+        parser.error("--dataset must start with 'synthetic:' or 'real:'")
 
 
 if __name__ == "__main__":
