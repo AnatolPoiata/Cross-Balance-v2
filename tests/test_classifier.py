@@ -140,6 +140,29 @@ def test_auto_base_estimator_picks_gradient_boosting_for_densest_chunks():
     assert isinstance(clf.estimators_[0], GradientBoostingClassifier)
 
 
+def test_max_chunk_size_caps_total_samples_per_chunk_estimator():
+    # Balanced (5000/5000), 5 features -> uncapped chunk would be huge
+    # (n_min + ratio*n_min = 5000 + 10000 = 15000), density 3000+ -> GB tier.
+    # With max_chunk_size=200, density should drop to a lower tier and the
+    # estimator actually used should reflect a much smaller effective chunk.
+    rng = np.random.RandomState(0)
+    X = rng.randn(10000, 5)
+    y = np.array([1] * 5000 + [0] * 5000)
+    clf_uncapped = CrossBalanceClassifier(base_estimator="auto", ratio=2, n_chunks=2, random_state=0).fit(X, y)
+    clf_capped = CrossBalanceClassifier(
+        base_estimator="auto", ratio=2, n_chunks=2, max_chunk_size=200, random_state=0,
+    ).fit(X, y)
+    assert isinstance(clf_uncapped.estimators_[0], GradientBoostingClassifier)
+    assert not isinstance(clf_capped.estimators_[0], GradientBoostingClassifier)
+
+
+def test_max_chunk_size_none_is_unbounded_default(imbalanced_data):
+    X, y = imbalanced_data
+    clf = CrossBalanceClassifier(n_chunks=3, random_state=0)
+    assert clf.max_chunk_size is None
+    clf.fit(X, y)  # should not raise, behaves as before max_chunk_size existed
+
+
 def test_recovers_minority_class_reasonably_well(imbalanced_data):
     X, y = imbalanced_data
     clf = CrossBalanceClassifier(

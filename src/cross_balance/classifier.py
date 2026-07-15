@@ -39,8 +39,10 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
         ``OMPClassifier`` (sparse linear, for small/high-dimensional chunks
         where dense models overfit) → ``LogisticRegression`` → shallow
         ``DecisionTreeClassifier(max_depth=6)`` → ``RandomForestClassifier``
-        (30 trees, depth 8) → ``GradientBoostingClassifier`` (50 estimators,
-        depth 3) for the densest chunks. ``None`` forces
+        (20 trees, depth 8, 30% row subsampling) → ``GradientBoostingClassifier``
+        (15 estimators, depth 2, 30% row subsampling) for the densest chunks
+        -- the RF/GB configs are intentionally lightweight since ``'auto'``
+        may refit them ``n_chunks`` times per ``fit()`` call. ``None`` forces
         ``LogisticRegression(max_iter=1000)`` always; pass any other
         estimator to use it unconditionally.
     auto_density_thresholds : tuple of 4 floats, default=(5.0, 10.0, 30.0, 100.0)
@@ -62,12 +64,20 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
         on its own chunk; 'uniform' averages all members equally.
     internal_splits : int, default=3
         KFold splits used to compute OOF weights when ``weighting='oof'``.
+    max_chunk_size : int or None, default=None
+        Caps the majority-sample count per chunk (after applying ``ratio``),
+        independent of ``n_min``/``n_maj``. ``None`` leaves chunks unbounded
+        (the original behavior). Matters most with ``base_estimator='auto'``
+        on large or near-balanced datasets: without a cap, a chunk can grow
+        to tens of thousands of rows, and the RandomForest/GradientBoosting
+        tiers become impractically slow when refit ``n_chunks`` times per
+        ``fit()`` call (plus ``internal_splits`` more for OOF weighting).
     random_state : int, RandomState instance or None, default=None
     """
 
     def __init__(self, base_estimator="auto", auto_density_thresholds=(5.0, 10.0, 30.0, 100.0),
                  ensemble_type="boosting", ratio=2.0, n_chunks=50, weighting="oof",
-                 internal_splits=3, random_state=None):
+                 internal_splits=3, max_chunk_size=None, random_state=None):
         self.base_estimator = base_estimator
         self.auto_density_thresholds = auto_density_thresholds
         self.ensemble_type = ensemble_type
@@ -75,6 +85,7 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
         self.n_chunks = n_chunks
         self.weighting = weighting
         self.internal_splits = internal_splits
+        self.max_chunk_size = max_chunk_size
         self.random_state = random_state
 
     def _resolve_base_estimator(self, n_chunk_samples, n_features):
@@ -89,8 +100,9 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
             if density < t_tree:
                 return DecisionTreeClassifier(max_depth=6, random_state=rs)
             if density < t_rf:
-                return RandomForestClassifier(n_estimators=30, max_depth=8, random_state=rs, n_jobs=-1)
-            return GradientBoostingClassifier(n_estimators=50, max_depth=3, random_state=rs)
+                return RandomForestClassifier(n_estimators=20, max_depth=8, max_samples=0.3,
+                                               random_state=rs, n_jobs=1)
+            return GradientBoostingClassifier(n_estimators=15, max_depth=2, subsample=0.3, random_state=rs)
         if self.base_estimator is None:
             return LogisticRegression(max_iter=1000)
         return self.base_estimator
@@ -114,7 +126,19 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
         n_min, n_maj = len(X_min), len(X_maj)
 
         chunk_size = min(max(1, int(round(self.ratio * n_min))), n_maj)
-        base = self._resolve_base_estimator(n_min + chunk_size, X.shape[1])
+
+        # Cap the total per-chunk sample count. Chunk composition is
+        # min(all n_min minority) + chunk_size majority -- for large/
+        # near-balanced datasets n_min alone can be huge, so both sides are
+        # scaled down proportionally (preserving `ratio`) rather than only
+        # capping the majority side.
+        n_min_use = n_min
+        if self.max_chunk_size is not None and (n_min + chunk_size) > self.max_chunk_size:
+            scale = self.max_chunk_size / (n_min + chunk_size)
+            n_min_use = max(1, int(round(n_min * scale)))
+            chunk_size = max(1, self.max_chunk_size - n_min_use)
+
+        base = self._resolve_base_estimator(n_min_use + chunk_size, X.shape[1])
         seed = rng.randint(0, np.iinfo(np.int32).max)
 
         if self.ensemble_type == "bagging":
@@ -130,9 +154,15 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
             else:
                 chunk = chunk_index_list[i]
 
-            X_chunk = np.vstack([X_min, X_maj[chunk]])
+            if n_min_use < n_min:
+                min_idx = check_random_state(seed + i).choice(n_min, size=n_min_use, replace=False)
+                X_min_chunk = X_min[min_idx]
+            else:
+                X_min_chunk = X_min
+
+            X_chunk = np.vstack([X_min_chunk, X_maj[chunk]])
             y_chunk = np.concatenate([
-                np.full(n_min, minority_class),
+                np.full(n_min_use, minority_class),
                 np.full(len(chunk), majority_class),
             ])
 
