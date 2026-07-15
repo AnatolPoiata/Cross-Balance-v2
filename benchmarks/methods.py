@@ -59,7 +59,7 @@ def build_methods(random_state=RANDOM_STATE):
         "EasyEnsemble": EasyEnsembleClassifier(n_estimators=10, random_state=random_state, n_jobs=-1),
         "CrossBalance": CrossBalanceClassifier(
             base_estimator="auto",
-            ensemble_type="bagging", ratio=2.0,
+            ensemble_type="boosting", ratio=2.0,
             n_chunks=25, weighting="oof", random_state=random_state,
         ),
     }
