@@ -14,8 +14,8 @@ data/raw/*
 data/processed/*
 !data/processed/.gitkeep
 
-# Large generated artifacts
-results/**/*.png
+# Large generated artifacts (PR curve PNGs ARE tracked -- article/draft.md
+# embeds specific ones directly, and they're small enough to commit)
 results/**/*.parquet
 *.pkl
 

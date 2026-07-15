@@ -233,6 +233,49 @@ project's smallest — and segment0 in particular is a near-saturated benchmark
 where all 11 methods cluster within 0.01 AUCPR of each other, making rank
 differences there of limited practical significance.
 
+### 5.4 Precision-recall curves
+
+Figures 1–2 show the before/after story on the two datasets with the largest
+margins: the final Cross-Balance (blue) visibly dominates Balanced Random
+Forest (red, the strongest baseline) across nearly the full recall range,
+not just in the summary statistic.
+
+**Figure 1 — synthetic 99:5, final configuration.** Cross-Balance vs.
+Balanced Random Forest and the other 9 baselines (folded to gray).
+Cross-Balance leads at nearly every recall level, most visibly in the
+0.4–0.9 range where Balanced Random Forest's precision drops off faster.
+
+![PR curves — synthetic 99:5, iteration 5](../results/iteration_5/synthetic/99-5/pr_curves.png)
+
+**Figure 2 — Credit Card Fraud, final configuration.** The largest visual
+margin in the study: Cross-Balance's curve sits well above every baseline
+across almost the entire recall range, consistent with its AUCPR nearly
+doubling Balanced Random Forest's.
+
+![PR curves — Credit Card Fraud, iteration 5](../results/iteration_5/real/credit_card_fraud/pr_curves.png)
+
+**Figure 3 — Communities & Crime, final configuration (honest counter-example).**
+The one competitive-but-not-leading case among the six datasets discussed in
+§5.3: Cross-Balance (blue) and the no-resampling Baseline (red) trade the
+lead depending on recall level, with Baseline slightly ahead overall.
+
+![PR curves — Communities & Crime, iteration 5](../results/iteration_5/real/communities_crime/pr_curves.png)
+
+*Methodological note on the AP values in these figures:* the legend reports
+average precision computed on **pooled** out-of-fold predictions (all 10 test
+folds' true labels and scores concatenated, then one AP computed over the
+pool), whereas Table 5.3 and all other tables in this paper report the
+**mean of per-fold AUCPR** (AUCPR computed independently per fold, then
+averaged). These are both standard, valid aggregations but are not
+numerically identical, and can diverge more on small datasets where
+per-fold estimates are noisier. Concretely: on Communities & Crime (1,994
+rows, ~200/fold), Cross-Balance's pooled AP is 0.538 vs. its mean-per-fold
+AUCPR of 0.579 (Baseline: pooled 0.564 vs. mean-per-fold 0.594) — a ~0.03–0.04
+gap. On the two larger datasets (synthetic 99:5, 20,000 rows; Credit Card
+Fraud, 50,000 rows) the two aggregations agree to within 0.007. We report
+both rather than picking one, since the discrepancy itself is informative
+about estimate stability at small sample sizes (see §7).
+
 ## 6. Discussion
 
 ### 6.1 The recall/precision shift
@@ -287,6 +330,13 @@ density rule).
   `random_state=42` throughout; we have not yet run repeated-seed variance
   estimates for the final configuration specifically (per-fold std is reported
   in the underlying CSVs, but not seed-to-seed variance).
+- **Mean-per-fold AUCPR and pooled-out-of-fold AP disagree on small datasets.**
+  As shown in §5.4, the two standard ways of aggregating AUCPR across folds
+  differ by ~0.03–0.04 on Communities & Crime (1,994 rows) but agree to within
+  0.007 on datasets of 20,000+ rows. All tables in this paper use mean-per-fold
+  AUCPR; readers should treat single-decimal rank differences on datasets under
+  ~2,500 rows as sensitive to the choice of aggregation, not just to the method
+  being compared.
 - **`auto_density_threshold=10.0` was chosen once, informally, on the same
   datasets used to report final results** — it has not been validated on a
   held-out set of datasets not used during development. This is the most

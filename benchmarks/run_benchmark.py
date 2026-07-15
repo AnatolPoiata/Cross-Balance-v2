@@ -20,7 +20,7 @@ from .datasets import PROJECT_ROOT, SYNTHETIC_RATIOS, load_synthetic
 from .methods import build_methods
 from .metrics import METRIC_NAMES, compute_metrics
 from .real_datasets import REAL_DATASETS, stratified_subsample
-from .report import summarize, write_report
+from .report import plot_pr_curves, summarize, write_report
 
 SYNTHETIC_RESULTS_DIR = PROJECT_ROOT / "results" / "phase_synthetic"
 REAL_RESULTS_DIR = PROJECT_ROOT / "results" / "phase_real"
@@ -34,6 +34,8 @@ def run_one_dataset(dataset_key, X, y, folds, seed, methods=None):
     skf = StratifiedKFold(n_splits=folds, shuffle=True, random_state=seed)
     fold_results = {name: defaultdict(list) for name in all_methods}
     timings = defaultdict(list)
+    oof_true = {name: [] for name in all_methods}
+    oof_proba = {name: [] for name in all_methods}
 
     for fold_i, (train_idx, test_idx) in enumerate(skf.split(X, y)):
         X_train, X_test = X[train_idx], X[test_idx]
@@ -54,6 +56,8 @@ def run_one_dataset(dataset_key, X, y, folds, seed, methods=None):
                 for metric_name, value in compute_metrics(y_test, pred, proba).items():
                     fold_results[name][metric_name].append(value)
                 timings[name].append(fit_time)
+                oof_true[name].append(y_test)
+                oof_proba[name].append(proba)
             except Exception as exc:  # one method's fold failure shouldn't kill the run
                 print(f"  [{dataset_key}] fold {fold_i}: {name} failed: {exc}", file=sys.stderr)
                 for metric_name in METRIC_NAMES:
@@ -62,18 +66,24 @@ def run_one_dataset(dataset_key, X, y, folds, seed, methods=None):
     summary = summarize(fold_results)
     mean_fit_time = {name: float(np.mean(t)) if t else float("nan") for name, t in timings.items()}
     summary["fit_time_mean_s"] = summary["method"].map(mean_fit_time)
-    return summary
+
+    oof_true = {name: np.concatenate(v) for name, v in oof_true.items() if v}
+    oof_proba = {name: np.concatenate(v) for name, v in oof_proba.items() if v}
+    return summary, oof_true, oof_proba
 
 
 def _run_and_report(key, X, y, out_dir, title, folds, seed, methods):
     print(f"=== {title} (folds={folds}) ===")
     print(f"  shape={X.shape}, minority_count={int((y == 1).sum())}")
 
-    summary = run_one_dataset(key, X, y, folds, seed, methods=methods)
-    csv_path, html_path = write_report(summary, out_dir, title=f"Cross-Balance Benchmark — {title}")
+    summary, oof_true, oof_proba = run_one_dataset(key, X, y, folds, seed, methods=methods)
+    pr_path = plot_pr_curves(oof_true, oof_proba, summary, Path(out_dir) / "pr_curves.png",
+                              title=f"PR curves — {title}")
+    csv_path, html_path = write_report(summary, out_dir, title=f"Cross-Balance Benchmark — {title}",
+                                        pr_curve_filename=pr_path.name)
     print(summary[["rank", "method", "aucpr_mean", "recall_mean", "precision_mean", "mcc_mean"]]
           .to_string(index=False))
-    print(f"  -> {csv_path}\n  -> {html_path}\n")
+    print(f"  -> {csv_path}\n  -> {html_path}\n  -> {pr_path}\n")
 
 
 def main(argv=None):
