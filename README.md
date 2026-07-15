@@ -12,8 +12,8 @@ prototype in the sibling `Cross-Balance/` folder (`cbc_v1.py` → `cbc_v2.py`).
 
 - **Phase A** (done): packaged the algorithm as a library, built a
   benchmarking harness, generated synthetic imbalanced datasets (99:1,
-  99:2, 99:5), and compared Cross-Balance against 10 established
-  imbalance-handling methods. See `results/phase_synthetic/`.
+  98:2, 95:5, 50,000 rows each), and compared Cross-Balance against 10
+  established imbalance-handling methods. See `results/phase_synthetic/`.
 - **Phase B** (done): extended the comparison to 8 real-world datasets —
   Communities & Crime, Credit Card Fraud (kartik2112), Credit Card Fraud
   2023, PaySim (synthetic financial fraud), Fraud Detection Transactions,

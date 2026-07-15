@@ -89,9 +89,9 @@ def _run_and_report(key, X, y, out_dir, title, folds, seed, methods):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", default="synthetic:99-1",
-                         help="synthetic:<99-1|99-2|99-5|all> or real:<name> (see DATA_SOURCES.md)")
+                         help="synthetic:<99-1|98-2|95-5|all> or real:<name> (see DATA_SOURCES.md)")
     parser.add_argument("--folds", type=int, default=10)
-    parser.add_argument("--n-samples", type=int, default=20_000,
+    parser.add_argument("--n-samples", type=int, default=50_000,
                          help="synthetic datasets only")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--methods", nargs="*", default=None,

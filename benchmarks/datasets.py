@@ -15,16 +15,17 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
 # Named imbalance ratios the project benchmarks across (minority fraction).
+# Key = "<majority>-<minority>" as an actual percentage pair summing to 100.
 SYNTHETIC_RATIOS = {
     "99-1": 0.01,
-    "99-2": 0.02,
-    "99-5": 0.05,
+    "98-2": 0.02,
+    "95-5": 0.05,
 }
 
 
 def make_synthetic_imbalanced(
     ratio=0.01,
-    n_samples=20_000,
+    n_samples=50_000,
     n_features=20,
     n_informative=18,
     n_redundant=2,
@@ -66,7 +67,7 @@ def load_synthetic(name, use_cache=True, **kwargs):
     if name not in SYNTHETIC_RATIOS:
         raise ValueError(f"Unknown synthetic dataset '{name}'. Choose from {list(SYNTHETIC_RATIOS)}")
 
-    n_samples = kwargs.get("n_samples", 20_000)
+    n_samples = kwargs.get("n_samples", 50_000)
     random_state = kwargs.get("random_state", 42)
     cache_path = PROCESSED_DIR / "synthetic" / f"{name}_n{n_samples}_rs{random_state}.parquet"
     if use_cache and cache_path.exists():
