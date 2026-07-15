@@ -2,11 +2,12 @@ import numpy as np
 import pytest
 from sklearn.base import clone
 from sklearn.datasets import make_classification
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
 from sklearn.tree import DecisionTreeClassifier
 
-from cross_balance import CrossBalanceClassifier
+from cross_balance import CrossBalanceClassifier, OMPClassifier
 
 
 @pytest.fixture
@@ -59,7 +60,7 @@ def test_base_estimator_none_forces_logistic_regression(imbalanced_data):
 
 
 def test_defaults_match_validated_config():
-    # Regression guard: these defaults were chosen by 5 rounds of
+    # Regression guard: these defaults were chosen by iterative
     # benchmarking (see results/iteration_*) -- a silent drift here would
     # silently change what "CrossBalanceClassifier()" means.
     params = CrossBalanceClassifier().get_params()
@@ -68,6 +69,7 @@ def test_defaults_match_validated_config():
     assert params["n_chunks"] == 50
     assert params["ratio"] == 2.0
     assert params["weighting"] == "oof"
+    assert params["auto_density_thresholds"] == (5.0, 10.0, 30.0, 100.0)
 
 
 def test_rejects_non_binary_targets():
@@ -96,19 +98,46 @@ def test_string_labels_supported():
     assert clf.minority_class_ == "yes"
 
 
-def test_auto_base_estimator_picks_tree_for_high_density_chunks(imbalanced_data):
-    X, y = imbalanced_data  # 2000 rows, 10 features -> plenty dense
+def test_auto_base_estimator_picks_tree_for_mid_density_chunks(imbalanced_data):
+    X, y = imbalanced_data  # 2000 rows, 10 features, ~3% minority -> density ~18 (tree tier)
     clf = CrossBalanceClassifier(base_estimator="auto", n_chunks=3, random_state=0).fit(X, y)
     assert isinstance(clf.estimators_[0], DecisionTreeClassifier)
 
 
-def test_auto_base_estimator_picks_logreg_for_low_density_chunks():
-    # 60 rows, 30 features, small minority -> tiny chunks, low samples-per-feature
+def test_auto_base_estimator_picks_omp_for_lowest_density_chunks():
+    # 60 rows, 30 features, tiny minority -> density ~0.4, well under the OMP tier's threshold
     rng = np.random.RandomState(0)
     X = rng.randn(60, 30)
     y = np.array([1] * 6 + [0] * 54)
     clf = CrossBalanceClassifier(base_estimator="auto", ratio=1, n_chunks=3, random_state=0).fit(X, y)
+    assert isinstance(clf.estimators_[0], OMPClassifier)
+
+
+def test_auto_base_estimator_picks_logreg_for_low_density_chunks():
+    # 200 rows, 6 features, 15 minority, ratio=2 -> chunk density 45/6=7.5 (LR tier: [5, 10))
+    rng = np.random.RandomState(0)
+    X = rng.randn(200, 6)
+    y = np.array([1] * 15 + [0] * 185)
+    clf = CrossBalanceClassifier(base_estimator="auto", ratio=2, n_chunks=3, random_state=0).fit(X, y)
     assert isinstance(clf.estimators_[0], LogisticRegression)
+
+
+def test_auto_base_estimator_picks_random_forest_for_denser_chunks():
+    # 3000 rows, 10 features, 200 minority, ratio=2 -> chunk density 600/10=60 (RF tier: [30, 100))
+    rng = np.random.RandomState(0)
+    X = rng.randn(3000, 10)
+    y = np.array([1] * 200 + [0] * 2800)
+    clf = CrossBalanceClassifier(base_estimator="auto", ratio=2, n_chunks=3, random_state=0).fit(X, y)
+    assert isinstance(clf.estimators_[0], RandomForestClassifier)
+
+
+def test_auto_base_estimator_picks_gradient_boosting_for_densest_chunks():
+    # 5000 rows, 5 features, 500 minority, ratio=2 -> chunk density 1500/5=300 (GB tier: >=100)
+    rng = np.random.RandomState(0)
+    X = rng.randn(5000, 5)
+    y = np.array([1] * 500 + [0] * 4500)
+    clf = CrossBalanceClassifier(base_estimator="auto", ratio=2, n_chunks=3, random_state=0).fit(X, y)
+    assert isinstance(clf.estimators_[0], GradientBoostingClassifier)
 
 
 def test_recovers_minority_class_reasonably_well(imbalanced_data):

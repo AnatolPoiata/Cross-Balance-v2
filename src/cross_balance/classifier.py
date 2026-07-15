@@ -4,6 +4,7 @@ binary classification.
 
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin, clone
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.utils import check_random_state
@@ -12,6 +13,7 @@ from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
 
 from ._partition import bagging_chunks, weighted_chunks
 from ._weighting import normalize_weights, oof_score
+from .estimators import OMPClassifier
 
 
 class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
@@ -31,18 +33,20 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
     Parameters
     ----------
     base_estimator : estimator, ``'auto'``, or None, default=``'auto'``
-        Cloned and fit once per chunk. ``'auto'`` picks per chunk between a
-        shallow ``DecisionTreeClassifier(max_depth=6)`` and
-        ``LogisticRegression``, based on the chunk's samples-per-feature
-        density (see ``auto_density_threshold``) — high-variance trees help
-        on chunks with enough data to support them, but overfit on small,
-        high-dimensional chunks where a lower-variance linear model
-        generalizes better. ``None`` forces ``LogisticRegression(max_iter=1000)``
-        always; pass any other estimator to use it unconditionally.
-    auto_density_threshold : float, default=10.0
-        Only used when ``base_estimator='auto'``. If a chunk's
-        (samples / n_features) ratio falls below this, ``LogisticRegression``
-        is used instead of the decision tree.
+        Cloned and fit once per chunk. ``'auto'`` picks per chunk from a
+        5-tier capacity ladder based on the chunk's samples-per-feature
+        density (see ``auto_density_thresholds``), lowest-capacity first:
+        ``OMPClassifier`` (sparse linear, for small/high-dimensional chunks
+        where dense models overfit) → ``LogisticRegression`` → shallow
+        ``DecisionTreeClassifier(max_depth=6)`` → ``RandomForestClassifier``
+        (30 trees, depth 8) → ``GradientBoostingClassifier`` (50 estimators,
+        depth 3) for the densest chunks. ``None`` forces
+        ``LogisticRegression(max_iter=1000)`` always; pass any other
+        estimator to use it unconditionally.
+    auto_density_thresholds : tuple of 4 floats, default=(5.0, 10.0, 30.0, 100.0)
+        Only used when ``base_estimator='auto'``. Samples-per-feature
+        density boundaries between the 5 tiers above (OMP below the first
+        value, GradientBoosting at or above the last).
     ensemble_type : {'bagging', 'boosting'}, default='boosting'
         'bagging' draws chunks by sequential wrap-around sampling of the
         majority class. 'boosting' draws chunks by weighted resampling,
@@ -61,10 +65,11 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
     random_state : int, RandomState instance or None, default=None
     """
 
-    def __init__(self, base_estimator="auto", auto_density_threshold=10.0, ensemble_type="boosting",
-                 ratio=2.0, n_chunks=50, weighting="oof", internal_splits=3, random_state=None):
+    def __init__(self, base_estimator="auto", auto_density_thresholds=(5.0, 10.0, 30.0, 100.0),
+                 ensemble_type="boosting", ratio=2.0, n_chunks=50, weighting="oof",
+                 internal_splits=3, random_state=None):
         self.base_estimator = base_estimator
-        self.auto_density_threshold = auto_density_threshold
+        self.auto_density_thresholds = auto_density_thresholds
         self.ensemble_type = ensemble_type
         self.ratio = ratio
         self.n_chunks = n_chunks
@@ -75,9 +80,17 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
     def _resolve_base_estimator(self, n_chunk_samples, n_features):
         if isinstance(self.base_estimator, str) and self.base_estimator == "auto":
             density = n_chunk_samples / max(n_features, 1)
-            if density < self.auto_density_threshold:
-                return LogisticRegression(max_iter=1000, random_state=self.random_state)
-            return DecisionTreeClassifier(max_depth=6, random_state=self.random_state)
+            t_omp, t_lr, t_tree, t_rf = self.auto_density_thresholds
+            rs = self.random_state
+            if density < t_omp:
+                return OMPClassifier(random_state=rs)
+            if density < t_lr:
+                return LogisticRegression(max_iter=1000, random_state=rs)
+            if density < t_tree:
+                return DecisionTreeClassifier(max_depth=6, random_state=rs)
+            if density < t_rf:
+                return RandomForestClassifier(n_estimators=30, max_depth=8, random_state=rs, n_jobs=-1)
+            return GradientBoostingClassifier(n_estimators=50, max_depth=3, random_state=rs)
         if self.base_estimator is None:
             return LogisticRegression(max_iter=1000)
         return self.base_estimator
