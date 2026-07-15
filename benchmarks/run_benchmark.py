@@ -88,7 +88,13 @@ def main(argv=None):
                          help="subset of method names to run (default: all)")
     parser.add_argument("--max-samples", type=int, default=50_000,
                          help="real datasets only: cap dataset size via stratified subsampling")
+    parser.add_argument("--out-root", default=None,
+                         help="override results root (default: results/phase_synthetic, results/phase_real). "
+                              "Use e.g. results/iteration_1 to avoid overwriting a prior snapshot.")
     args = parser.parse_args(argv)
+
+    synthetic_results_dir = Path(args.out_root) / "synthetic" if args.out_root else SYNTHETIC_RESULTS_DIR
+    real_results_dir = Path(args.out_root) / "real" if args.out_root else REAL_RESULTS_DIR
 
     kind, _, key_arg = args.dataset.partition(":")
     if kind == "synthetic":
@@ -97,7 +103,7 @@ def main(argv=None):
             if key not in SYNTHETIC_RATIOS:
                 parser.error(f"Unknown synthetic dataset '{key}'. Choose from {list(SYNTHETIC_RATIOS)}")
             X, y = load_synthetic(key, n_samples=args.n_samples, random_state=args.seed)
-            _run_and_report(key, X, y, SYNTHETIC_RESULTS_DIR / key, f"synthetic {key}",
+            _run_and_report(key, X, y, synthetic_results_dir / key, f"synthetic {key}",
                              args.folds, args.seed, args.methods)
     elif kind == "real":
         real_keys = list(REAL_DATASETS) if key_arg == "all" else [key_arg]
@@ -109,7 +115,7 @@ def main(argv=None):
             except FileNotFoundError as exc:
                 parser.exit(1, f"{exc}\n")
             X, y = stratified_subsample(X, y, args.max_samples, random_state=args.seed)
-            _run_and_report(key, X, y, REAL_RESULTS_DIR / key, f"real:{key}",
+            _run_and_report(key, X, y, real_results_dir / key, f"real:{key}",
                              args.folds, args.seed, args.methods)
     else:
         parser.error("--dataset must start with 'synthetic:' or 'real:'")

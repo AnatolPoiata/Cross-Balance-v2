@@ -12,6 +12,7 @@ from imblearn.over_sampling import ADASYN, SMOTE, BorderlineSMOTE, RandomOverSam
 from imblearn.pipeline import Pipeline as ImbPipeline
 from imblearn.under_sampling import RandomUnderSampler
 from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
 
 from cross_balance import CrossBalanceClassifier
 
@@ -58,7 +59,8 @@ def build_methods(random_state=RANDOM_STATE):
         ),
         "EasyEnsemble": EasyEnsembleClassifier(n_estimators=10, random_state=random_state, n_jobs=-1),
         "CrossBalance": CrossBalanceClassifier(
-            base_estimator=_lr(), ensemble_type="bagging", ratio=2.0,
-            n_chunks=10, weighting="oof", random_state=random_state,
+            base_estimator=DecisionTreeClassifier(random_state=random_state),
+            ensemble_type="bagging", ratio=2.0,
+            n_chunks=25, weighting="oof", random_state=random_state,
         ),
     }
