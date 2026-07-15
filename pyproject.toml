@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cross-balance"
+version = "0.1.0"
+description = "Cross-Balance: a chunked-partition ensemble method for imbalanced binary classification"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "imbalanced-learn",
+    "scipy",
+]
+
+[project.optional-dependencies]
+boost = ["xgboost", "lightgbm"]
+nn = ["torch"]
+plot = ["matplotlib"]
+dev = ["pytest"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cross_balance"]

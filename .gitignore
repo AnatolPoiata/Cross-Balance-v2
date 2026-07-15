@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Data (raw downloads and generated caches are not committed)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Large generated artifacts
+results/**/*.png
+results/**/*.parquet
+*.pkl
+
+# Reference literature (large binary corpus, not source)
+references/
+
+# OS
+.DS_Store
+._*
