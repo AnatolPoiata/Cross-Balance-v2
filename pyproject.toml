@@ -20,6 +20,7 @@ dependencies = [
 boost = ["xgboost", "lightgbm"]
 nn = ["torch"]
 plot = ["matplotlib"]
+bench = ["pyarrow"]
 dev = ["pytest"]
 
 [tool.hatch.build.targets.wheel]
