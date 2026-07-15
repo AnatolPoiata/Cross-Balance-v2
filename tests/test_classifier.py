@@ -52,10 +52,22 @@ def test_sklearn_clone_and_get_set_params(imbalanced_data):
     assert len(clf2.estimators_) == 7
 
 
-def test_default_base_estimator_is_logistic_regression(imbalanced_data):
+def test_base_estimator_none_forces_logistic_regression(imbalanced_data):
     X, y = imbalanced_data
-    clf = CrossBalanceClassifier(n_chunks=3, random_state=0).fit(X, y)
+    clf = CrossBalanceClassifier(base_estimator=None, n_chunks=3, random_state=0).fit(X, y)
     assert isinstance(clf.estimators_[0], LogisticRegression)
+
+
+def test_defaults_match_validated_config():
+    # Regression guard: these defaults were chosen by 5 rounds of
+    # benchmarking (see results/iteration_*) -- a silent drift here would
+    # silently change what "CrossBalanceClassifier()" means.
+    params = CrossBalanceClassifier().get_params()
+    assert params["base_estimator"] == "auto"
+    assert params["ensemble_type"] == "boosting"
+    assert params["n_chunks"] == 50
+    assert params["ratio"] == 2.0
+    assert params["weighting"] == "oof"
 
 
 def test_rejects_non_binary_targets():

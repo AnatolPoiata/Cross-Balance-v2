@@ -22,22 +22,28 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
     ``base_estimator`` per slice. Predictions are combined via a weighted
     average of ``predict_proba``.
 
+    Defaults (``base_estimator='auto'``, ``ensemble_type='boosting'``,
+    ``n_chunks=50``) reflect the best configuration found across 5 rounds of
+    benchmarking against 10 established imbalance-handling methods on 3
+    synthetic and 8 real-world datasets (see the project's ``results/``
+    directory) — pass explicit values to override.
+
     Parameters
     ----------
-    base_estimator : estimator, ``'auto'``, or None, default=None
-        Cloned and fit once per chunk. ``None`` defaults to
-        ``LogisticRegression(max_iter=1000)``. ``'auto'`` picks per chunk
-        between a shallow ``DecisionTreeClassifier(max_depth=6)`` and
+    base_estimator : estimator, ``'auto'``, or None, default=``'auto'``
+        Cloned and fit once per chunk. ``'auto'`` picks per chunk between a
+        shallow ``DecisionTreeClassifier(max_depth=6)`` and
         ``LogisticRegression``, based on the chunk's samples-per-feature
         density (see ``auto_density_threshold``) — high-variance trees help
         on chunks with enough data to support them, but overfit on small,
         high-dimensional chunks where a lower-variance linear model
-        generalizes better.
+        generalizes better. ``None`` forces ``LogisticRegression(max_iter=1000)``
+        always; pass any other estimator to use it unconditionally.
     auto_density_threshold : float, default=10.0
         Only used when ``base_estimator='auto'``. If a chunk's
         (samples / n_features) ratio falls below this, ``LogisticRegression``
         is used instead of the decision tree.
-    ensemble_type : {'bagging', 'boosting'}, default='bagging'
+    ensemble_type : {'bagging', 'boosting'}, default='boosting'
         'bagging' draws chunks by sequential wrap-around sampling of the
         majority class. 'boosting' draws chunks by weighted resampling,
         upweighting majority samples the ensemble-so-far misclassifies
@@ -45,7 +51,7 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
     ratio : float, default=2.0
         Majority:minority ratio within each chunk (e.g. 2.0 pairs the full
         minority class with 2x as many majority samples per chunk).
-    n_chunks : int, default=10
+    n_chunks : int, default=50
         Number of chunks / ensemble members.
     weighting : {'uniform', 'oof'}, default='oof'
         'oof' weights each member by its out-of-fold average-precision score
@@ -55,8 +61,8 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
     random_state : int, RandomState instance or None, default=None
     """
 
-    def __init__(self, base_estimator=None, auto_density_threshold=10.0, ensemble_type="bagging",
-                 ratio=2.0, n_chunks=10, weighting="oof", internal_splits=3, random_state=None):
+    def __init__(self, base_estimator="auto", auto_density_threshold=10.0, ensemble_type="boosting",
+                 ratio=2.0, n_chunks=50, weighting="oof", internal_splits=3, random_state=None):
         self.base_estimator = base_estimator
         self.auto_density_threshold = auto_density_threshold
         self.ensemble_type = ensemble_type
