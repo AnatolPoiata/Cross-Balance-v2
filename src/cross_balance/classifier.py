@@ -5,6 +5,7 @@ binary classification.
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin, clone
 from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.utils import check_random_state
 from sklearn.utils.multiclass import unique_labels
 from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
@@ -23,9 +24,19 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
 
     Parameters
     ----------
-    base_estimator : estimator, default=None
-        Cloned and fit once per chunk. Defaults to
-        ``LogisticRegression(max_iter=1000)`` if None.
+    base_estimator : estimator, ``'auto'``, or None, default=None
+        Cloned and fit once per chunk. ``None`` defaults to
+        ``LogisticRegression(max_iter=1000)``. ``'auto'`` picks per chunk
+        between a shallow ``DecisionTreeClassifier(max_depth=6)`` and
+        ``LogisticRegression``, based on the chunk's samples-per-feature
+        density (see ``auto_density_threshold``) — high-variance trees help
+        on chunks with enough data to support them, but overfit on small,
+        high-dimensional chunks where a lower-variance linear model
+        generalizes better.
+    auto_density_threshold : float, default=10.0
+        Only used when ``base_estimator='auto'``. If a chunk's
+        (samples / n_features) ratio falls below this, ``LogisticRegression``
+        is used instead of the decision tree.
     ensemble_type : {'bagging', 'boosting'}, default='bagging'
         'bagging' draws chunks by sequential wrap-around sampling of the
         majority class. 'boosting' draws chunks by weighted resampling,
@@ -44,15 +55,26 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
     random_state : int, RandomState instance or None, default=None
     """
 
-    def __init__(self, base_estimator=None, ensemble_type="bagging", ratio=2.0,
-                 n_chunks=10, weighting="oof", internal_splits=3, random_state=None):
+    def __init__(self, base_estimator=None, auto_density_threshold=10.0, ensemble_type="bagging",
+                 ratio=2.0, n_chunks=10, weighting="oof", internal_splits=3, random_state=None):
         self.base_estimator = base_estimator
+        self.auto_density_threshold = auto_density_threshold
         self.ensemble_type = ensemble_type
         self.ratio = ratio
         self.n_chunks = n_chunks
         self.weighting = weighting
         self.internal_splits = internal_splits
         self.random_state = random_state
+
+    def _resolve_base_estimator(self, n_chunk_samples, n_features):
+        if isinstance(self.base_estimator, str) and self.base_estimator == "auto":
+            density = n_chunk_samples / max(n_features, 1)
+            if density < self.auto_density_threshold:
+                return LogisticRegression(max_iter=1000, random_state=self.random_state)
+            return DecisionTreeClassifier(max_depth=6, random_state=self.random_state)
+        if self.base_estimator is None:
+            return LogisticRegression(max_iter=1000)
+        return self.base_estimator
 
     def fit(self, X, y):
         X, y = check_X_y(X, y)
@@ -63,7 +85,6 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
             raise ValueError("ensemble_type must be 'bagging' or 'boosting'")
 
         rng = check_random_state(self.random_state)
-        base = self.base_estimator if self.base_estimator is not None else LogisticRegression(max_iter=1000)
 
         # Minority = smaller-count class; majority = the other.
         counts = {c: int(np.sum(y == c)) for c in self.classes_}
@@ -74,6 +95,7 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
         n_min, n_maj = len(X_min), len(X_maj)
 
         chunk_size = min(max(1, int(round(self.ratio * n_min))), n_maj)
+        base = self._resolve_base_estimator(n_min + chunk_size, X.shape[1])
         seed = rng.randint(0, np.iinfo(np.int32).max)
 
         if self.ensemble_type == "bagging":

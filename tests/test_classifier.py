@@ -4,6 +4,7 @@ from sklearn.base import clone
 from sklearn.datasets import make_classification
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
+from sklearn.tree import DecisionTreeClassifier
 
 from cross_balance import CrossBalanceClassifier
 
@@ -81,6 +82,21 @@ def test_string_labels_supported():
     pred = clf.predict(X)
     assert set(pred) <= {"yes", "no"}
     assert clf.minority_class_ == "yes"
+
+
+def test_auto_base_estimator_picks_tree_for_high_density_chunks(imbalanced_data):
+    X, y = imbalanced_data  # 2000 rows, 10 features -> plenty dense
+    clf = CrossBalanceClassifier(base_estimator="auto", n_chunks=3, random_state=0).fit(X, y)
+    assert isinstance(clf.estimators_[0], DecisionTreeClassifier)
+
+
+def test_auto_base_estimator_picks_logreg_for_low_density_chunks():
+    # 60 rows, 30 features, small minority -> tiny chunks, low samples-per-feature
+    rng = np.random.RandomState(0)
+    X = rng.randn(60, 30)
+    y = np.array([1] * 6 + [0] * 54)
+    clf = CrossBalanceClassifier(base_estimator="auto", ratio=1, n_chunks=3, random_state=0).fit(X, y)
+    assert isinstance(clf.estimators_[0], LogisticRegression)
 
 
 def test_recovers_minority_class_reasonably_well(imbalanced_data):
