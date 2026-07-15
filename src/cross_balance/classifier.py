@@ -13,7 +13,7 @@ from ._partition import bagging_chunks, weighted_chunks
 from ._weighting import normalize_weights, oof_score
 
 
-class CrossBalanceClassifier(BaseEstimator, ClassifierMixin):
+class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
     """Ensemble classifier for imbalanced binary classification.
 
     Partitions the majority class into ``n_chunks`` balanced-ratio slices,
