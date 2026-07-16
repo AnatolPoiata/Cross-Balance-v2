@@ -1,0 +1,11 @@
+Independent ratio tuning for CrossBalanceClassifier (majority:minority per chunk)
+Tuning suite (disjoint from the benchmark datasets): [{'n_samples': 8000, 'n_features': 15, 'n_informative': 10, 'n_redundant': 2, 'ratio': 0.02, 'random_state': 1001}, {'n_samples': 30000, 'n_features': 25, 'n_informative': 18, 'n_redundant': 3, 'ratio': 0.05, 'random_state': 1002}, {'n_samples': 60000, 'n_features': 10, 'n_informative': 7, 'n_redundant': 1, 'ratio': 0.01, 'random_state': 1003}, {'n_samples': 15000, 'n_features': 40, 'n_informative': 25, 'n_redundant': 5, 'ratio': 0.08, 'random_state': 1004}]
+Thresholds held fixed at iteration 7's validated value: (2.9, 12.5, 19.3, 238.6)
+
+2.0	0.5415
+1.0	0.5369
+3.0	0.4456
+4.0	0.4125
+5.0	0.3940
+
+Best: 2.0	0.5415
