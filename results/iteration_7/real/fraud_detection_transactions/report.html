@@ -1,0 +1,154 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Cross-Balance Benchmark — real:fraud_detection_transactions</title>
+<style>
+body { font-family: -apple-system, sans-serif; margin: 2rem; color: #1a1a1a; }
+table.results { border-collapse: collapse; width: 100%; }
+table.results th, table.results td { padding: 0.4rem 0.8rem; text-align: right; border-bottom: 1px solid #ddd; }
+table.results th:nth-child(2), table.results td:nth-child(2) { text-align: left; }
+table.results tr:first-child { font-weight: bold; background: #f0f7ff; }
+h1 { font-size: 1.4rem; }
+p.meta { color: #666; }
+</style>
+</head><body>
+<h1>Cross-Balance Benchmark — real:fraud_detection_transactions</h1>
+<p class="meta">Top method by AUCPR: <strong>BalancedRandomForest</strong></p>
+<table class="dataframe results">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Rank</th>
+      <th>Method</th>
+      <th>AUCPR</th>
+      <th>PRECISION</th>
+      <th>RECALL</th>
+      <th>MACRO F1</th>
+      <th>G MEAN</th>
+      <th>MCC</th>
+      <th>BALANCED ACCURACY</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>BalancedRandomForest</td>
+      <td>1.0000</td>
+      <td>1.0000</td>
+      <td>1.0000</td>
+      <td>1.0000</td>
+      <td>1.0000</td>
+      <td>1.0000</td>
+      <td>1.0000</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>EasyEnsemble</td>
+      <td>1.0000</td>
+      <td>1.0000</td>
+      <td>1.0000</td>
+      <td>1.0000</td>
+      <td>1.0000</td>
+      <td>1.0000</td>
+      <td>1.0000</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>CrossBalance</td>
+      <td>1.0000</td>
+      <td>1.0000</td>
+      <td>0.9984</td>
+      <td>0.9994</td>
+      <td>0.9992</td>
+      <td>0.9989</td>
+      <td>0.9992</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Baseline</td>
+      <td>0.8201</td>
+      <td>0.7297</td>
+      <td>0.6518</td>
+      <td>0.7762</td>
+      <td>0.7597</td>
+      <td>0.5549</td>
+      <td>0.7687</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>RandomUnderSampler</td>
+      <td>0.8153</td>
+      <td>0.6484</td>
+      <td>0.8075</td>
+      <td>0.7804</td>
+      <td>0.8000</td>
+      <td>0.5720</td>
+      <td>0.8001</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>ClassWeighted</td>
+      <td>0.8145</td>
+      <td>0.6471</td>
+      <td>0.8056</td>
+      <td>0.7792</td>
+      <td>0.7987</td>
+      <td>0.5696</td>
+      <td>0.7988</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>RandomOverSampler</td>
+      <td>0.8145</td>
+      <td>0.6477</td>
+      <td>0.8062</td>
+      <td>0.7797</td>
+      <td>0.7992</td>
+      <td>0.5706</td>
+      <td>0.7993</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>ADASYN</td>
+      <td>0.8143</td>
+      <td>0.6523</td>
+      <td>0.7921</td>
+      <td>0.7791</td>
+      <td>0.7960</td>
+      <td>0.5668</td>
+      <td>0.7960</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>SMOTETomek</td>
+      <td>0.8142</td>
+      <td>0.6507</td>
+      <td>0.7913</td>
+      <td>0.7780</td>
+      <td>0.7950</td>
+      <td>0.5648</td>
+      <td>0.7950</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td>BorderlineSMOTE</td>
+      <td>0.8141</td>
+      <td>0.6512</td>
+      <td>0.7949</td>
+      <td>0.7791</td>
+      <td>0.7965</td>
+      <td>0.5673</td>
+      <td>0.7966</td>
+    </tr>
+    <tr>
+      <td>11</td>
+      <td>SMOTE</td>
+      <td>0.8123</td>
+      <td>0.6490</td>
+      <td>0.7902</td>
+      <td>0.7768</td>
+      <td>0.7938</td>
+      <td>0.5625</td>
+      <td>0.7939</td>
+    </tr>
+  </tbody>
+</table>
+<img src="pr_curves.png" alt="PR curves" style="max-width:100%">
+</body></html>
