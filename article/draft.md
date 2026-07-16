@@ -1,6 +1,8 @@
 # Cross-Balance: A Density-Adaptive, Cost-Sensitive Partitioning Ensemble for Imbalanced Binary Classification
 
-*Draft — Phase C complete (7 benchmark iterations), pending final editorial pass and author review.*
+*Draft — Phase C complete (7 benchmark iterations) plus extended validation
+(full-scale reruns, 4 new datasets, independent ratio sweep), pending final
+editorial pass and author review.*
 
 ## Abstract
 
@@ -35,7 +37,18 @@ report this result together with its most important caveat: the AUCPR gains are
 accompanied by a substantial recall drop at the default 0.5 decision threshold on
 several datasets, indicating the ensemble's probability outputs are better *ranked*
 but not necessarily well *calibrated* for direct thresholding — a limitation we
-discuss and recommend addressing via threshold tuning in deployment.
+discuss and recommend addressing via threshold tuning in deployment. Finally, we
+extend validation of the shipped configuration beyond the original 11 datasets:
+full (non-subsampled) reruns on the three largest fraud datasets, four new
+datasets spanning credit risk, medical diagnosis, mycology, and marketing, and an
+independent sweep of the majority:minority chunk ratio. This surfaces two genuine
+limitations invisible in the original benchmark — Cross-Balance's advantage over
+Balanced Random Forest reverses at full scale on the most extreme-imbalance
+dataset tested, because a chunk-size cap bounds how much data any single ensemble
+member trains on regardless of total dataset size, and the density-based tier
+selection can misfire on datasets with very few features regardless of how few
+rows they have — alongside a confirmation that the ratio hyperparameter, used
+unchanged and untested across all seven iterations, was already well-chosen.
 
 ## 1. Introduction
 
@@ -343,6 +356,69 @@ mean-per-fold on 95:5; 0.557 pooled vs. 0.562 mean-per-fold on Credit Card
 Fraud). We report both rather than picking one, since the discrepancy itself
 is informative about estimate stability at small sample sizes (see §7).
 
+### 5.5 Extended validation: full scale, four new domains, and a ratio sweep
+
+Three further checks were run against the shipped iteration-7 configuration
+without changing it, to test how far the results in §5.3 generalize.
+
+**Full scale, not subsampled.** The three largest real datasets were re-run
+without `stratified_subsample()` — the actual 568,630 / 1,852,394 / 6,362,620
+rows, not the 50,000-row slice used everywhere else in this paper.
+`BorderlineSMOTE` and `SMOTETomek` were excluded from this comparison: both
+failed to complete a single cross-validation fold in over 10 minutes on the
+6.36M-row PaySim set (their neighbor-search cost doesn't scale to this size),
+while every other method, including Cross-Balance, fits in under a minute per
+fold regardless of dataset size. The result is not a uniform "subsampling
+didn't matter" story:
+
+| Dataset (full size) | Subsampled (50k) rank/AUCPR | Full-size rank/AUCPR | Direction |
+|---|---|---|---|
+| Credit Card Fraud (1,852,394 rows) | 1 (0.562) | **1 (0.744)** | stronger at scale |
+| Credit Card Fraud 2023 (568,630 rows) | 2 (0.999) | 2 (0.998) | unchanged (near-ceiling either way) |
+| PaySim (6,362,620 rows) | **1** (0.891) | **2** (0.805, vs. BRF's 0.915) | **reverses at scale** |
+
+Credit Card Fraud's win gets *more* decisive with the full dataset. PaySim's
+does not: Balanced Random Forest's 100 full-depth trees benefit more from
+the additional data than Cross-Balance's chunked structure does, because
+`max_chunk_size=3000` (§3.3) caps how much data any single chunk's estimator
+ever trains on, regardless of how large the overall dataset is — Cross-Balance
+gains more ensemble *members* as a dataset grows, never more data *per
+member*. This is a genuine, previously-untested limitation, not a comparison
+artifact: it only shows up once you stop subsampling.
+
+**Four datasets from new domains.** UCI's Default of Credit Card Clients
+(30,000 rows, 22.1% minority), Mammographic Mass (961 rows, 46.3% minority —
+near-balanced), Secondary Mushroom (61,069 rows, 44.5% minority — also
+near-balanced), and Bank Marketing (41,188 rows, 11.3% minority) were run
+through the full 11-method comparison at full size. Mushroom (rank 2, 0.999)
+and Bank Marketing (rank 2, 0.639) are competitive, consistent with the
+pattern in §5.3. Default of Credit Card Clients is mid-pack (rank 3, 0.511,
+vs. Balanced Random Forest's 0.542). Mammographic is a clear miss: rank 10 of
+11 (0.769, vs. ADASYN's 0.836). The cause is diagnosable, not mysterious:
+Mammographic has only 4 usable features (`BI-RADS` is dropped per the
+dataset's own documentation, which labels it non-predictive — see
+`DATA_SOURCES.md`), so samples-per-feature density reaches ~300 at just 961
+total rows — enough to trigger the same heavily-throttled GradientBoosting
+tier that already underperforms in §6.4, but here on a dataset far too small
+in absolute terms to benefit from that much capacity. This is a new failure
+mode for the density heuristic (§6.3, §6.4): it was designed and tuned
+around the assumption that low feature count signals *enough data relative
+to dimensionality*, which breaks down when a dataset is small on both axes
+at once.
+
+**A ratio sweep, r ∈ {1, 2, 3, 4, 5}.** Every iteration in this paper used
+`ratio=2.0` (each chunk pairs the full minority class with 2× as many
+majority samples) without that value ever having been tested against
+alternatives — it was inherited unchanged from the original prototype.
+Following the same independent-tuning methodology as §6.4 (held-out
+synthetic suite, `benchmarks/tune_ratio.py`), `ratio` was swept with
+iteration 7's thresholds held fixed: `r=2.0` scored highest (mean AP 0.542),
+narrowly ahead of `r=1.0` (0.537), with `r=3,4,5` progressively worse (0.446,
+0.413, 0.394 — pairing each chunk's minority with too much majority data
+dilutes the signal any single base estimator sees). Unlike the threshold
+tuning in iteration 7, this confirms rather than changes the existing
+default; full results in `results/ratio_tuning.txt`.
+
 ## 6. Discussion
 
 ### 6.1 The recall/precision shift
@@ -494,9 +570,34 @@ fit to.
 - **Two "near-perfect" results (Fraud Detection Transactions, shuttle\_2\_vs\_5)**
   likely reflect near-linear separability in those specific datasets rather than
   a meaningful capability gap between the tied-leading methods.
-- **Subsampling for large datasets** (Credit Card Fraud, PaySim, Credit Card
-  Fraud 2023) means results there characterize performance on a representative
-  50,000-row slice, not the full multi-million-row dataset.
+- **Subsampling for large datasets is no longer an untested assumption for
+  the three fraud datasets** (§5.5 re-ran all three at full, un-subsampled
+  size) — but the finding there cuts both ways: Credit Card Fraud's result
+  got stronger at full scale, PaySim's reversed. We no longer treat the
+  50,000-row comparisons in §5.3 as necessarily representative of full-scale
+  behavior for *any* dataset not specifically re-tested; readers should not
+  extrapolate the subsampled numbers for other large datasets without
+  checking.
+- **`max_chunk_size` bounds Cross-Balance's benefit from additional data.**
+  §5.5's PaySim result exposes this directly: once a chunk hits the cap (3,000
+  rows by default), adding more training data increases the number of
+  ensemble members, never the data available to any one of them. Balanced
+  Random Forest has no equivalent cap, and pulled further ahead as PaySim's
+  full 6.36M rows became available. This is a real architectural limitation,
+  not a tuning artifact — see Future Work.
+- **The density heuristic (§3.3, §6.3, §6.4) has a specific, now-documented
+  failure mode: very low feature count.** Samples-per-feature density can be
+  high even on a tiny dataset if it also has few features (Mammographic: 961
+  rows, 4 features, density ~300) — triggering high-capacity tiers on data
+  too small in absolute terms to support them (§5.5). The heuristic was
+  designed and tuned assuming density tracks "enough data for this much
+  model capacity," which only holds when feature count is in a normal range.
+- **`BorderlineSMOTE` and `SMOTETomek` do not scale to multi-million-row
+  datasets** in this implementation (§5.5) — both were excluded from the
+  full-size comparison after failing to complete a single fold in over 10
+  minutes. This is a real property of those methods at this scale, not a
+  Cross-Balance-specific finding, but it does mean the full-size comparison
+  in §5.5 has 9 baselines instead of 10.
 - **No hyperparameter search for baseline methods** — all 10 comparison methods
   use scikit-learn/imbalanced-learn defaults (adjusted only for `n_estimators`
   where noted), which is standard practice for this kind of broad comparison but
@@ -516,20 +617,34 @@ rest. Its three most consequential design choices — density-adaptive base
 estimator selection, cost-sensitive boosting between chunks, and (as of iteration
 7) independently-tuned selection thresholds — were all arrived at empirically,
 through iterations that initially introduced regressions before being refined to
-reduce or eliminate them. We view the full iteration history, including iteration
-6's regression and iteration 7's partial-not-total resolution of it, as more
-scientifically useful than reporting only the strongest configuration.
+reduce or eliminate them. A fourth check, run against the shipped configuration
+without changing it (§5.5), extended validation to full (non-subsampled) scale on
+the three largest fraud datasets and to four new domains (credit default, medical
+diagnosis, mycology, marketing) — confirming that Cross-Balance's wins are not
+subsampling artifacts on Credit Card Fraud (the margin *grew* at full scale), while
+also surfacing two genuine limitations that hadn't shown up anywhere in the first
+11-dataset benchmark: PaySim's result reverses at full scale because
+`max_chunk_size` caps how much data any one chunk trains on regardless of dataset
+size, and Mammographic's very low feature count (4) inflates the density heuristic
+into selecting a high-capacity tier the dataset is too small to actually support.
+A fifth check confirmed, rather than changed, the `ratio=2.0` default that every
+iteration had used without testing. We view the full record — including iteration
+6's regression, iteration 7's partial-not-total resolution of it, and §5.5's two
+new failure modes — as more scientifically useful than reporting only the
+strongest configuration on the friendliest subset of datasets.
 
-Immediate next steps: (1) build a larger, more diverse tuning suite — including
-held-out real-world datasets, not just synthetic ones — to test whether it closes
-the three gaps iteration 7 left open (Communities & Crime, PaySim, and the new
-Credit Card Fraud regression); (2) revisit Random Forest and Gradient Boosting
-tier configurations with a larger computational budget now that `max_chunk_size`
-makes the speed/capacity tradeoff explicit and tunable, rather than the
-heavily-throttled configuration iterations 6–7 were forced into; (3) pair
-Cross-Balance with explicit threshold calibration to address the recall/precision
-shift documented in §6.1; (4) extend the comparison to multi-seed variance
-estimates.
+Immediate next steps: (1) address the `max_chunk_size` scaling ceiling directly —
+e.g. growing the cap with dataset size, or adding more chunks per unit of data
+rather than a hard row cap — so Cross-Balance can use additional data the way
+Balanced Random Forest does; (2) extend the density heuristic to consider absolute
+row count, not just samples-per-feature density, so it stops selecting
+high-capacity tiers on datasets that are small in absolute terms regardless of
+feature count (Mammographic); (3) build a larger, more diverse tuning suite —
+including held-out real-world datasets, not just synthetic ones — to test whether
+it closes the remaining gaps from iteration 7 (Communities & Crime, PaySim,
+Credit Card Fraud's tier-change regression); (4) pair Cross-Balance with explicit
+threshold calibration to address the recall/precision shift documented in §6.1;
+(5) extend the comparison to multi-seed variance estimates.
 
 ## References
 
@@ -573,9 +688,11 @@ corpus, not itemized here):
 
 *All results in this draft are reproducible via `benchmarks/run_benchmark.py`;
 raw per-fold data underlying every table is in `results/phase_synthetic/`,
-`results/phase_real/`, and `results/iteration_1/` through `iteration_7/`.
-Threshold-tuning search results are in `results/threshold_tuning.txt`
-(`benchmarks/tune_thresholds.py`). Git commit history documents each iteration's
+`results/phase_real/`, `results/iteration_1/` through `iteration_7/`, and
+`results/iteration_7_fullsize/` (§5.5's non-subsampled reruns). Threshold- and
+ratio-tuning search results are in `results/threshold_tuning.txt` and
+`results/ratio_tuning.txt` (`benchmarks/tune_thresholds.py`,
+`benchmarks/tune_ratio.py`). Git commit history documents each iteration's
 hypothesis and outcome in detail, including the mid-project data-contamination
 bug and fix documented in the commit history around iteration 3–5's synthetic
 reruns.*
