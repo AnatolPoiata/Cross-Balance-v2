@@ -69,10 +69,14 @@ def test_defaults_match_validated_config():
     assert params["n_chunks"] == 50
     assert params["ratio"] == 2.0
     assert params["weighting"] == "oof"
-    # Disables the OMP/RandomForest/GradientBoosting tiers (iteration 6
-    # tested them and regressed 6 of 11 datasets, see results/iteration_6) --
-    # reproduces the validated 2-tier (LR/tree) ladder from iteration 5.
-    assert params["auto_density_thresholds"] == (0.0, 10.0, float("inf"), float("inf"))
+    # Independently tuned in iteration 7 (see benchmarks/tune_thresholds.py
+    # and results/iteration_7) against a held-out synthetic tuning suite,
+    # then validated on the full 11-dataset benchmark -- raised the
+    # outright-win count from 5 to 6 of 11 vs. iteration 5's ad hoc-free
+    # 2-tier ladder, and from iteration 6's own ad hoc (5,10,30,100) tiers
+    # (which regressed 6 of 11 datasets).
+    assert params["auto_density_thresholds"] == (2.9, 12.5, 19.3, 238.6)
+    assert params["max_chunk_size"] == 3000
 
 
 def test_rejects_non_binary_targets():
@@ -107,7 +111,10 @@ def test_auto_base_estimator_picks_tree_for_mid_density_chunks(imbalanced_data):
     assert isinstance(clf.estimators_[0], DecisionTreeClassifier)
 
 
-_FULL_TIERS = (5.0, 10.0, 30.0, 100.0)  # opt-in 5-tier ladder; not the shipped default (see iteration 6)
+# iteration 6's original ad hoc thresholds -- superseded as the default by
+# iteration 7's independently-tuned (2.9, 12.5, 19.3, 238.6), but still a
+# convenient fixed point for exercising each tier of the ladder in isolation.
+_ITERATION_6_ADHOC_TIERS = (5.0, 10.0, 30.0, 100.0)
 
 
 def test_auto_base_estimator_picks_omp_for_lowest_density_chunks():
@@ -115,7 +122,7 @@ def test_auto_base_estimator_picks_omp_for_lowest_density_chunks():
     rng = np.random.RandomState(0)
     X = rng.randn(60, 30)
     y = np.array([1] * 6 + [0] * 54)
-    clf = CrossBalanceClassifier(base_estimator="auto", auto_density_thresholds=_FULL_TIERS,
+    clf = CrossBalanceClassifier(base_estimator="auto", auto_density_thresholds=_ITERATION_6_ADHOC_TIERS,
                                   ratio=1, n_chunks=3, random_state=0).fit(X, y)
     assert isinstance(clf.estimators_[0], OMPClassifier)
 
@@ -125,7 +132,7 @@ def test_auto_base_estimator_picks_logreg_for_low_density_chunks():
     rng = np.random.RandomState(0)
     X = rng.randn(200, 6)
     y = np.array([1] * 15 + [0] * 185)
-    clf = CrossBalanceClassifier(base_estimator="auto", auto_density_thresholds=_FULL_TIERS,
+    clf = CrossBalanceClassifier(base_estimator="auto", auto_density_thresholds=_ITERATION_6_ADHOC_TIERS,
                                   ratio=2, n_chunks=3, random_state=0).fit(X, y)
     assert isinstance(clf.estimators_[0], LogisticRegression)
 
@@ -135,7 +142,7 @@ def test_auto_base_estimator_picks_random_forest_for_denser_chunks():
     rng = np.random.RandomState(0)
     X = rng.randn(3000, 10)
     y = np.array([1] * 200 + [0] * 2800)
-    clf = CrossBalanceClassifier(base_estimator="auto", auto_density_thresholds=_FULL_TIERS,
+    clf = CrossBalanceClassifier(base_estimator="auto", auto_density_thresholds=_ITERATION_6_ADHOC_TIERS,
                                   ratio=2, n_chunks=3, random_state=0).fit(X, y)
     assert isinstance(clf.estimators_[0], RandomForestClassifier)
 
@@ -145,44 +152,49 @@ def test_auto_base_estimator_picks_gradient_boosting_for_densest_chunks():
     rng = np.random.RandomState(0)
     X = rng.randn(5000, 5)
     y = np.array([1] * 500 + [0] * 4500)
-    clf = CrossBalanceClassifier(base_estimator="auto", auto_density_thresholds=_FULL_TIERS,
+    clf = CrossBalanceClassifier(base_estimator="auto", auto_density_thresholds=_ITERATION_6_ADHOC_TIERS,
                                   ratio=2, n_chunks=3, random_state=0).fit(X, y)
     assert isinstance(clf.estimators_[0], GradientBoostingClassifier)
 
 
-def test_default_auto_thresholds_disable_extended_tiers(imbalanced_data):
-    # With the shipped default thresholds, even a very low-density chunk
-    # should never reach OMP -- it stays 2-tier (LR/tree) as validated.
+def test_default_thresholds_reach_omp_for_very_sparse_chunks():
+    # Unlike iteration 6's ad hoc thresholds, the tuned default (2.9, ...)
+    # has a strictly positive OMP boundary, so very sparse chunks now
+    # legitimately reach OMP under the *shipped default*, not just when
+    # explicitly opted into a wider ladder.
     rng = np.random.RandomState(0)
     X = rng.randn(60, 30)
     y = np.array([1] * 6 + [0] * 54)
     clf = CrossBalanceClassifier(base_estimator="auto", ratio=1, n_chunks=3, random_state=0).fit(X, y)
-    assert isinstance(clf.estimators_[0], LogisticRegression)
+    assert isinstance(clf.estimators_[0], OMPClassifier)
 
 
 def test_max_chunk_size_caps_total_samples_per_chunk_estimator():
     # Balanced (5000/5000), 5 features -> uncapped chunk would be huge
-    # (n_min + ratio*n_min = 5000 + 10000 = 15000), density 3000+ -> GB tier.
+    # (n_min + ratio*n_min = 5000 + 10000 = 15000), very high density -> GB tier.
     # With max_chunk_size=200, density should drop to a lower tier and the
     # estimator actually used should reflect a much smaller effective chunk.
-    # Uses the full 5-tier ladder explicitly since the shipped default
-    # never reaches GB regardless of chunk size.
     rng = np.random.RandomState(0)
     X = rng.randn(10000, 5)
     y = np.array([1] * 5000 + [0] * 5000)
-    clf_uncapped = CrossBalanceClassifier(base_estimator="auto", auto_density_thresholds=_FULL_TIERS,
-                                           ratio=2, n_chunks=2, random_state=0).fit(X, y)
+    clf_uncapped = CrossBalanceClassifier(base_estimator="auto", auto_density_thresholds=_ITERATION_6_ADHOC_TIERS,
+                                           ratio=2, n_chunks=2, max_chunk_size=None, random_state=0).fit(X, y)
     clf_capped = CrossBalanceClassifier(
-        base_estimator="auto", auto_density_thresholds=_FULL_TIERS,
+        base_estimator="auto", auto_density_thresholds=_ITERATION_6_ADHOC_TIERS,
         ratio=2, n_chunks=2, max_chunk_size=200, random_state=0,
     ).fit(X, y)
     assert isinstance(clf_uncapped.estimators_[0], GradientBoostingClassifier)
     assert not isinstance(clf_capped.estimators_[0], GradientBoostingClassifier)
 
 
-def test_max_chunk_size_none_is_unbounded_default(imbalanced_data):
-    X, y = imbalanced_data
+def test_max_chunk_size_default_is_3000():
     clf = CrossBalanceClassifier(n_chunks=3, random_state=0)
+    assert clf.max_chunk_size == 3000
+
+
+def test_max_chunk_size_none_is_explicitly_unbounded(imbalanced_data):
+    X, y = imbalanced_data
+    clf = CrossBalanceClassifier(n_chunks=3, max_chunk_size=None, random_state=0)
     assert clf.max_chunk_size is None
     clf.fit(X, y)  # should not raise, behaves as before max_chunk_size existed
 
