@@ -25,10 +25,11 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
     average of ``predict_proba``.
 
     Defaults (``base_estimator='auto'``, ``ensemble_type='boosting'``,
-    ``n_chunks=50``) reflect the best configuration found across 5 rounds of
-    benchmarking against 10 established imbalance-handling methods on 3
-    synthetic and 8 real-world datasets (see the project's ``results/``
-    directory) — pass explicit values to override.
+    ``n_chunks=50``, ``auto_density_thresholds=(0.0, 10.0, inf, inf)``)
+    reflect the best configuration found across 5 rounds of benchmarking
+    against 10 established imbalance-handling methods on 3 synthetic and 8
+    real-world datasets (see the project's ``results/`` directory) — pass
+    explicit values to override.
 
     Parameters
     ----------
@@ -45,10 +46,20 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
         may refit them ``n_chunks`` times per ``fit()`` call. ``None`` forces
         ``LogisticRegression(max_iter=1000)`` always; pass any other
         estimator to use it unconditionally.
-    auto_density_thresholds : tuple of 4 floats, default=(5.0, 10.0, 30.0, 100.0)
+    auto_density_thresholds : tuple of 4 floats, default=(0.0, 10.0, inf, inf)
         Only used when ``base_estimator='auto'``. Samples-per-feature
         density boundaries between the 5 tiers above (OMP below the first
-        value, GradientBoosting at or above the last).
+        value, GradientBoosting at or above the last). The default disables
+        the OMP/RandomForest/GradientBoosting tiers entirely (density is
+        never negative, so the OMP tier is unreachable; the tree/RF
+        boundary is +inf, so everything at or above the LR threshold gets
+        the tree) -- reproducing the simpler 2-tier (LR/tree) ladder that
+        was actually validated as strongest. A 6th benchmark round tested
+        the full 5-tier ladder (``auto_density_thresholds=(5.0, 10.0, 30.0,
+        100.0)``) and found it regressed 6 of 11 benchmark datasets versus
+        this 2-tier default (see ``results/iteration_6``) -- the extra
+        tiers remain available for experimentation, opted into explicitly,
+        but are not the shipped default.
     ensemble_type : {'bagging', 'boosting'}, default='boosting'
         'bagging' draws chunks by sequential wrap-around sampling of the
         majority class. 'boosting' draws chunks by weighted resampling,
@@ -75,7 +86,8 @@ class CrossBalanceClassifier(ClassifierMixin, BaseEstimator):
     random_state : int, RandomState instance or None, default=None
     """
 
-    def __init__(self, base_estimator="auto", auto_density_thresholds=(5.0, 10.0, 30.0, 100.0),
+    def __init__(self, base_estimator="auto",
+                 auto_density_thresholds=(0.0, 10.0, float("inf"), float("inf")),
                  ensemble_type="boosting", ratio=2.0, n_chunks=50, weighting="oof",
                  internal_splits=3, max_chunk_size=None, random_state=None):
         self.base_estimator = base_estimator

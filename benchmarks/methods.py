@@ -60,6 +60,6 @@ def build_methods(random_state=RANDOM_STATE):
         "CrossBalance": CrossBalanceClassifier(
             base_estimator="auto",
             ensemble_type="boosting", ratio=2.0,
-            n_chunks=50, weighting="oof", max_chunk_size=3000, random_state=random_state,
+            n_chunks=50, weighting="oof", random_state=random_state,
         ),
     }
