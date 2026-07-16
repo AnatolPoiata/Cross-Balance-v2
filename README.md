@@ -35,10 +35,25 @@ prototype in the sibling `Cross-Balance/` folder (`cbc_v1.py` → `cbc_v2.py`).
   disjoint from the benchmark (`benchmarks/tune_thresholds.py`) and
   resolved most, not all, of that regression — the tuned thresholds are
   now the shipped default.
+- **Extended validation** (done): re-tested the shipped iteration-7 config,
+  unchanged, against three checks beyond the original 11-dataset benchmark
+  — (1) full, non-subsampled reruns of the three largest fraud datasets
+  (see `results/iteration_7_fullsize/`): Credit Card Fraud's win gets
+  *stronger* at full scale (1.85M rows), PaySim's *reverses* (6.36M rows —
+  Balanced Random Forest has no `max_chunk_size`-equivalent cap, so it
+  benefits more from the extra data); (2) four new UCI datasets —
+  `default_credit_card_clients`, `mammographic`, `mushrooms`,
+  `bank_marketing` — competitive on three, a clear miss on `mammographic`
+  (traced to its 4-feature count inflating the density heuristic on a
+  dataset too small in absolute terms to support the resulting
+  high-capacity tier); (3) an independent sweep of `ratio` in {1..5}
+  (`benchmarks/tune_ratio.py`, `results/ratio_tuning.txt`) confirms
+  `ratio=2.0` — used unchanged and untested across all 7 iterations — was
+  already the best choice.
 - **Article**: a full draft is in `article/draft.md`, covering the method,
   all 7 iterations (including iteration 6's negative result and iteration
-  7's resolution), and honest limitations (see `REFERENCES.md` for source
-  material).
+  7's resolution), the extended validation above, and honest limitations
+  (see `REFERENCES.md` for source material).
 
 ## Install
 
@@ -65,6 +80,12 @@ python -m benchmarks.run_benchmark --dataset synthetic:99-1 --folds 10
 python -m benchmarks.run_benchmark --dataset synthetic:all --folds 10
 python -m benchmarks.run_benchmark --dataset real:credit_card_fraud --folds 10
 python -m benchmarks.run_benchmark --dataset real:all --max-samples 50000
+python -m benchmarks.run_benchmark --dataset real:mammographic --folds 10  # new UCI datasets
+
+# Full-size (not subsampled) -- slow; excluding BorderlineSMOTE/SMOTETomek is
+# recommended above a few million rows, see DATA_SOURCES.md and article §5.5:
+python -m benchmarks.run_benchmark --dataset real:synthetic_financial_fraud --max-samples 999999999 \
+  --methods Baseline ClassWeighted RandomUnderSampler RandomOverSampler SMOTE ADASYN BalancedRandomForest EasyEnsemble CrossBalance
 ```
 
 Results land in `results/phase_synthetic/<ratio>/` or `results/phase_real/<name>/`
@@ -78,7 +99,8 @@ src/cross_balance/     the library
 benchmarks/             dataset loaders, method registry, CLI, reporting
 data/raw/                manually-downloaded real datasets (gitignored) -- see DATA_SOURCES.md
 data/processed/          cached/generated synthetic datasets (gitignored)
-results/                 benchmark outputs (phase_synthetic, phase_real, iteration_1..7)
+results/                 benchmark outputs (phase_synthetic, phase_real, iteration_1..7,
+                          iteration_7_fullsize, threshold_tuning.txt, ratio_tuning.txt)
 tests/                   pytest suite
 article/                 Phase C research article draft
 references/              literature corpus (gitignored from git, kept locally)
