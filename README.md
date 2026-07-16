@@ -20,21 +20,25 @@ prototype in the sibling `Cross-Balance/` folder (`cbc_v1.py` → `cbc_v2.py`).
   Ailerons, and KEEL's segment0 / shuttle_2_vs_5. `bioassay` and
   `nih_chest_xray_sample` were excluded (see `DATA_SOURCES.md`). See
   `results/phase_real/`.
-- **Phase C** (done — 6 rounds): iterated on the algorithm guided by
-  benchmark results. See `results/iteration_1/` through `iteration_6/`,
+- **Phase C** (done — 7 rounds): iterated on the algorithm guided by
+  benchmark results. See `results/iteration_1/` through `iteration_7/`,
   each commit documents what changed and why. Validated config (the
-  library defaults): `base_estimator='auto'` (2-tier LR/tree ladder),
-  `ensemble_type='boosting'`, `n_chunks=50`. Cross-Balance finishes rank 1
-  on 5 of 11 benchmark datasets and statistically ties the strongest
-  baseline (Balanced Random Forest) on a 6th — see commit `a3dc814` for
-  the full tally. Iteration 6 extended `auto` to a 5-tier ladder (adding
-  OMP/RandomForest/GradientBoosting) and is a documented **negative
-  result** — it regressed 6 of 11 datasets and is not the shipped default,
-  though it remains available via an explicit `auto_density_thresholds`
-  override.
+  library defaults): `base_estimator='auto'` (5-tier OMP/LR/tree/RF/GB
+  ladder with independently-tuned thresholds), `ensemble_type='boosting'`,
+  `n_chunks=50`, `max_chunk_size=3000`. Cross-Balance finishes rank 1 on 6
+  of 11 benchmark datasets, including beating the strongest baseline
+  (Balanced Random Forest) outright on every synthetic imbalance ratio
+  tested — see commit `86a6c18` for the full tally. Iteration 6 first
+  extended `auto` to a 5-tier ladder using thresholds chosen by inspection
+  and regressed 6 of 11 datasets (a documented **negative result**);
+  iteration 7 re-tuned those thresholds against a held-out synthetic suite
+  disjoint from the benchmark (`benchmarks/tune_thresholds.py`) and
+  resolved most, not all, of that regression — the tuned thresholds are
+  now the shipped default.
 - **Article**: a full draft is in `article/draft.md`, covering the method,
-  all 6 iterations (including iteration 6's negative result), and honest
-  limitations (see `REFERENCES.md` for source material).
+  all 7 iterations (including iteration 6's negative result and iteration
+  7's resolution), and honest limitations (see `REFERENCES.md` for source
+  material).
 
 ## Install
 
@@ -47,8 +51,8 @@ pip install -e ".[boost,plot,bench,dev]"
 ```python
 from cross_balance import CrossBalanceClassifier
 
-# Defaults reflect the best config validated across Phase C's 6 benchmark rounds
-# (iteration 6 tested a richer estimator ladder and regressed -- not adopted).
+# Defaults reflect the best config validated across Phase C's 7 benchmark rounds,
+# including iteration 7's independently-tuned auto_density_thresholds.
 clf = CrossBalanceClassifier(random_state=42)
 clf.fit(X_train, y_train)
 proba = clf.predict_proba(X_test)
@@ -74,7 +78,7 @@ src/cross_balance/     the library
 benchmarks/             dataset loaders, method registry, CLI, reporting
 data/raw/                manually-downloaded real datasets (gitignored) -- see DATA_SOURCES.md
 data/processed/          cached/generated synthetic datasets (gitignored)
-results/                 benchmark outputs (phase_synthetic, phase_real, iteration_1..6)
+results/                 benchmark outputs (phase_synthetic, phase_real, iteration_1..7)
 tests/                   pytest suite
 article/                 Phase C research article draft
 references/              literature corpus (gitignored from git, kept locally)
