@@ -18,6 +18,10 @@ separate embedding pipeline, respectively) — no loaders exist for them.
 | `ailerons` | https://github.com/antoniopedropi/Datasets-ImbalancedRegression | `ailerons.csv` | regression — binarized, top 5% `Goal` |
 | `segment0` | KEEL: https://sci2s.ugr.es/keel/imbalanced.php | `segment0.dat` (`data/raw/segemnt0/`, note the folder typo) | ~6:1 (14.3% minority) |
 | `shuttle_2_vs_5` | KEEL: https://sci2s.ugr.es/keel/dataset.php?cod=1342 | `shuttle-2_vs_5.dat` | ~67:1 (1.5% minority) |
+| `default_credit_card_clients` | UCI: https://archive.ics.uci.edu/dataset/350/default+of+credit+card+clients | `default of credit card clients.xls` | ~3.5:1 (22.1% minority) |
+| `mammographic` | UCI: https://archive.ics.uci.edu/dataset/161/mammographic+mass | `mammographic_masses.data`, `.names` | **near-balanced** (46.3% minority) |
+| `mushrooms` | UCI: https://archive.ics.uci.edu/dataset/848/secondary+mushroom+dataset | `secondary_data.csv` (+ `primary_data.csv`, unused) | **near-balanced** (44.5% minority) |
+| `bank_marketing` | UCI: https://archive.ics.uci.edu/dataset/222/bank+marketing | `bank-additional-full.csv` (+ `bank-additional.csv`, unused 10% subset) | ~7.9:1 (11.3% minority) |
 
 Loaders live in `benchmarks/real_datasets.py`. Run
 `python -m benchmarks.run_benchmark --dataset real:<name>` (or `real:all`).
@@ -55,3 +59,22 @@ for k-fold CV) — see `stratified_subsample()` in `real_datasets.py`.
   low-cardinality categoricals one-hot encoded, high-cardinality
   categoricals (raw timestamps, account/user IDs) dropped. Verified against
   the actual files, not guessed.
+- **`mammographic` and `mushrooms` are both close to balanced** (46.3% and
+  44.5% minority respectively) despite being framed as classification
+  benchmarks — included for domain diversity (medical diagnosis, biological
+  taxonomy) rather than as core imbalance tests; treat them like
+  `credit_card_fraud_2023` as control/diversity points.
+- **`mammographic` drops the `BI-RADS` column** — the dataset's own `.names`
+  file documents it as "non-predictive": it's the radiologist's own
+  pre-assessment, so using it as a model feature would leak the near-answer.
+  Uses Age/Shape/Margin/Density as features (missing values median-imputed).
+- **`default_credit_card_clients`** is an `.xls` file with a two-row header
+  (generic `X1..X23/Y` labels, then the real column names) — the loader
+  reads with `header=1` to skip the generic row. Requires the `xlrd` package
+  (`pip install -e ".[bench]"`).
+- **`mushrooms` uses `secondary_data.csv`**, not `primary_data.csv` — the
+  latter stores feature *ranges* (e.g. `"[10, 20]"` for cap diameter) rather
+  than per-instance values, and isn't usable as numeric/categorical features
+  directly. Both files are semicolon-delimited.
+- **`bank_marketing` uses `bank-additional-full.csv`**, not the 10%-subset
+  `bank-additional.csv`. Semicolon-delimited with quoted string fields.

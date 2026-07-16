@@ -286,6 +286,71 @@ def load_shuttle_2_vs_5():
     return _parse_keel_dat(path)
 
 
+def load_default_credit_card_clients():
+    """UCI Default of Credit Card Clients (30,000 rows). The source .xls has
+    a two-row header (generic X1..X23/Y labels, then real names) -- read
+    with header=1 to get the real names. Drops the ID column. Target:
+    ``default payment next month``. Mild imbalance (~22% minority).
+    """
+    path = RAW_DIR / "default_credit_card_clients" / "default of credit card clients.xls"
+    if not path.exists():
+        raise _missing_file_error(path, "default_credit_card_clients")
+    df = pd.read_excel(path, header=1)
+    y = _encode_target(df["default payment next month"], verbose_name="default payment next month")
+    X = _encode_features(df.drop(columns=["default payment next month"]))
+    return X, y
+
+
+def load_mammographic(drop_birads=True):
+    """UCI Mammographic Mass (961 rows): BI-RADS, Age, Shape, Margin,
+    Density, Severity (target). BI-RADS is documented by the dataset itself
+    as "non-predictive" (it's the radiologist's own assessment, using it as
+    a feature would leak the near-answer) and is dropped by default.
+    Missing values ("?") are median-imputed. Near-balanced (~46% minority).
+    """
+    path = RAW_DIR / "mammographic" / "mammographic_masses.data"
+    if not path.exists():
+        raise _missing_file_error(path, "mammographic")
+    df = pd.read_csv(path, header=None, na_values="?",
+                      names=["BI-RADS", "Age", "Shape", "Margin", "Density", "Severity"])
+    if drop_birads:
+        df = df.drop(columns=["BI-RADS"])
+    y = df["Severity"].astype(int).to_numpy()
+    features = df.drop(columns=["Severity"]).apply(lambda s: s.fillna(s.median()))
+    return features.to_numpy(dtype=float), y
+
+
+def load_mushrooms():
+    """UCI Secondary Mushroom Dataset (61,069 rows, semicolon-delimited).
+    Uses secondary_data.csv (real feature values); primary_data.csv stores
+    ranges/lists (e.g. "[10, 20]") and isn't directly usable as features.
+    Target: ``class`` (edible/poisonous) -- note this dataset is close to
+    balanced (~44.5%/55.5%), not strongly imbalanced.
+    """
+    path = RAW_DIR / "mushrooms" / "secondary_data.csv"
+    if not path.exists():
+        raise _missing_file_error(path, "mushrooms")
+    df = pd.read_csv(path, sep=";")
+    y = _encode_target(df["class"], verbose_name="class")
+    X = _encode_features(df.drop(columns=["class"]))
+    return X, y
+
+
+def load_bank_marketing():
+    """UCI Bank Marketing (41,188 rows, semicolon-delimited, quoted strings).
+    Uses bank-additional-full.csv (the full set; bank-additional.csv is a
+    10% subsample of the same data). Target: ``y`` (term deposit
+    subscription). Moderate imbalance (~11.3% minority).
+    """
+    path = RAW_DIR / "bank_marketing" / "bank-additional-full.csv"
+    if not path.exists():
+        raise _missing_file_error(path, "bank_marketing")
+    df = pd.read_csv(path, sep=";")
+    y = _encode_target(df["y"], verbose_name="y")
+    X = _encode_features(df.drop(columns=["y"]))
+    return X, y
+
+
 REAL_DATASETS = {
     "communities_crime": load_communities_crime,
     "credit_card_fraud": load_credit_card_fraud,
@@ -295,5 +360,9 @@ REAL_DATASETS = {
     "ailerons": load_ailerons,
     "segment0": load_segment0,
     "shuttle_2_vs_5": load_shuttle_2_vs_5,
+    "default_credit_card_clients": load_default_credit_card_clients,
+    "mammographic": load_mammographic,
+    "mushrooms": load_mushrooms,
+    "bank_marketing": load_bank_marketing,
     # bioassay, nih_chest_xray_sample: excluded per project decision.
 }
