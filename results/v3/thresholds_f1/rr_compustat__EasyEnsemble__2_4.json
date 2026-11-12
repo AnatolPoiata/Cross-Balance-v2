@@ -1,0 +1,1 @@
+{"ds": "rr_compustat", "method": "EasyEnsemble", "repeat": 2, "fold": 4, "threshold": 0.5663001219785639, "ok": true, "seconds": 2.665048499999102}

@@ -1,0 +1,1 @@
+{"ds": "communities_crime", "method": "CB3_bagging", "repeat": 2, "fold": 2, "fit_s": 2.6463114579964895, "pred_s": 0.08176804200047627, "ok": true}

@@ -1,0 +1,1 @@
+{"ds": "rr_flare_f", "method": "SMOTE_LR", "repeat": 1, "fold": 3, "fit_s": 0.007837999990442768, "pred_s": 0.000311999989207834, "ok": true}

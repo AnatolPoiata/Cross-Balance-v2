@@ -1,0 +1,1 @@
+{"ds": "rr_compustat", "method": "XGBoost_spw", "repeat": 1, "fold": 3, "threshold": 0.3653029799461365, "ok": true, "seconds": 2.4452723750146106}

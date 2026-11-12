@@ -1,0 +1,1 @@
+{"ds": "bank_marketing", "method": "LightGBM_spw", "repeat": 2, "fold": 4, "threshold": 0.7087372137402502, "ok": true, "seconds": 2.3814959159935825}

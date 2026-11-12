@@ -1,0 +1,51 @@
+4800 threshold jobs
+[Parallel(n_jobs=7)]: Using backend LokyBackend with 7 concurrent workers.
+[Parallel(n_jobs=7)]: Done   4 tasks      | elapsed:    5.1s
+[Parallel(n_jobs=7)]: Done  58 tasks      | elapsed: 15.5min
+[Parallel(n_jobs=7)]: Done 148 tasks      | elapsed: 18.8min
+joblib.externals.loky.process_executor._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/Volumes/WORK/__Articles/Cross-Balance-v2/.venv/lib/python3.12/site-packages/joblib/externals/loky/process_executor.py", line 490, in _process_worker
+    r = call_item()
+        ^^^^^^^^^^^
+  File "/Volumes/WORK/__Articles/Cross-Balance-v2/.venv/lib/python3.12/site-packages/joblib/externals/loky/process_executor.py", line 291, in __call__
+    return self.fn(*self.args, **self.kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/WORK/__Articles/Cross-Balance-v2/.venv/lib/python3.12/site-packages/joblib/parallel.py", line 607, in __call__
+    return [func(*args, **kwargs) for func, args, kwargs in self.items]
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/WORK/__Articles/Cross-Balance-v2/benchmarks/thresholds_v3.py", line 40, in run_job
+    test_idx = np.load(OUT_DIR / "preds" / f"{ds}__{method}__{repeat}_{fold}.npz")["idx"]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/WORK/__Articles/Cross-Balance-v2/.venv/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py", line 454, in load
+    fid = stack.enter_context(open(os.fspath(file), "rb"))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/WORK/__Articles/Cross-Balance-v2/results/v3/preds/syn_99-1__RUSBoost__1_2.npz'
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/WORK/__Articles/Cross-Balance-v2/benchmarks/thresholds_v3.py", line 80, in <module>
+    main()
+  File "/Volumes/WORK/__Articles/Cross-Balance-v2/benchmarks/thresholds_v3.py", line 75, in main
+    res = Parallel(n_jobs=args.jobs, verbose=5)(delayed(run_job)(*j) for j in jobs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/WORK/__Articles/Cross-Balance-v2/.venv/lib/python3.12/site-packages/joblib/parallel.py", line 2072, in __call__
+    return output if self.return_generator else list(output)
+                                                ^^^^^^^^^^^^
+  File "/Volumes/WORK/__Articles/Cross-Balance-v2/.venv/lib/python3.12/site-packages/joblib/parallel.py", line 1682, in _get_outputs
+    yield from self._retrieve()
+  File "/Volumes/WORK/__Articles/Cross-Balance-v2/.venv/lib/python3.12/site-packages/joblib/parallel.py", line 1784, in _retrieve
+    self._raise_error_fast()
+  File "/Volumes/WORK/__Articles/Cross-Balance-v2/.venv/lib/python3.12/site-packages/joblib/parallel.py", line 1859, in _raise_error_fast
+    error_job.get_result(self.timeout)
+  File "/Volumes/WORK/__Articles/Cross-Balance-v2/.venv/lib/python3.12/site-packages/joblib/parallel.py", line 758, in get_result
+    return self._return_or_raise()
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/WORK/__Articles/Cross-Balance-v2/.venv/lib/python3.12/site-packages/joblib/parallel.py", line 773, in _return_or_raise
+    raise self._result
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/WORK/__Articles/Cross-Balance-v2/results/v3/preds/syn_99-1__RUSBoost__1_2.npz'

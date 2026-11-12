@@ -1,0 +1,1 @@
+{"ds": "creditcard_ulb", "method": "CB3_bagging", "repeat": 2, "fold": 2, "fit_s": 3.686413832998369, "pred_s": 5.585904625011608, "ok": true}

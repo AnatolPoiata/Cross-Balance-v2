@@ -1,0 +1,1 @@
+{"ds": "creditcard_ulb", "method": "XGBoost_spw", "repeat": 1, "fold": 3, "fit_s": 8.776115875021787, "pred_s": 0.35108383299666457, "ok": true}

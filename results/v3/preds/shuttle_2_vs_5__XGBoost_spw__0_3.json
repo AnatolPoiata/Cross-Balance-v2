@@ -1,0 +1,1 @@
+{"ds": "shuttle_2_vs_5", "method": "XGBoost_spw", "repeat": 0, "fold": 3, "fit_s": 0.0367294579918962, "pred_s": 0.001254875009180978, "ok": true}

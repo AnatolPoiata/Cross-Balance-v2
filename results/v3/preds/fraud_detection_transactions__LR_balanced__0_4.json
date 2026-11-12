@@ -1,0 +1,1 @@
+{"ds": "fraud_detection_transactions", "method": "LR_balanced", "repeat": 0, "fold": 4, "fit_s": 0.045383250020677224, "pred_s": 0.0024443750153295696, "ok": true}

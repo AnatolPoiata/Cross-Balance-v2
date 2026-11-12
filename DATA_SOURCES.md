@@ -78,3 +78,31 @@ for k-fold CV) — see `stratified_subsample()` in `real_datasets.py`.
   directly. Both files are semicolon-delimited.
 - **`bank_marketing` uses `bank-additional-full.csv`**, not the 10%-subset
   `bank-additional.csv`. Semicolon-delimited with quoted string fields.
+
+## Hold-out collection (added for v3, first loaded after the v3 design freeze)
+
+These 17 datasets were not used at any point while developing v1-v3 (the
+v3 development grid used only the datasets above). They are evaluated once,
+with the frozen v0.2 defaults, by `benchmarks/run_v3.py` (`HOLDOUT_DATASETS`
+in `real_datasets.py`).
+
+| loader key | source | file | rows | minority |
+|---|---|---|---|---|
+| `creditcard_ulb` | ULB / Worldline, Kaggle `mlg-ulb/creditcardfraud` (Dal Pozzolo et al., 2015) | `data/raw/credit_card/creditcard.csv` | 284,807 | 492 (0.17%) — **run at full size, native prevalence** |
+| `rr_*` (16 sets) | Park & Im (2024), Mendeley Data, doi:10.17632/pb3jd7vz9z.1 (KEEL/UCI-derived; paper: Park, Lee & Im, ESWA 247, 123274) | `data/raw/Experimental Dataset for Imbalanced Classification Application of Relabeling & Ranking Algorithm/[Cate|Conti|Mixed] <name>.csv` | 214 – 18,916 | IR 10 – 42 |
+
+The `rr_*` files carry a leading row-index column (named `""`, `Unnamed: 0`
+or `0`; its first value is corrupted to `Fa` in `Led.csv`), which the loader
+drops; the label is the last column (minority mapped to 1). Binary `Tr`/`Fa`
+and other categorical columns are one-hot encoded.
+
+## Notes added during v3
+
+- **Ailerons' positive share is 9.66%, not 5%, because of ties.** `Goal`
+  has only 35 distinct values; the 95th-percentile value (-0.0004) is shared
+  by 1,084 rows, and the loader's rule `Goal >= quantile(0.95)` keeps all
+  ties (1,328 positives / 13,750).
+- **The 200-positive floor of `stratified_subsample()` raises prevalence**
+  for PaySim (0.13% -> 0.40% in the 50,000-row sample) and the Sparkov
+  `credit_card_fraud` set (0.52%, close to native). `creditcard_ulb` is
+  therefore run unsubsampled.

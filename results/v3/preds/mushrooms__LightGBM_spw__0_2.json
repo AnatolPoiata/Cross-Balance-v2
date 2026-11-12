@@ -1,0 +1,1 @@
+{"ds": "mushrooms", "method": "LightGBM_spw", "repeat": 0, "fold": 2, "fit_s": 1.4223312080139294, "pred_s": 0.5599911669851281, "ok": true}

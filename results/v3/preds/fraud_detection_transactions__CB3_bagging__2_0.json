@@ -1,0 +1,1 @@
+{"ds": "fraud_detection_transactions", "method": "CB3_bagging", "repeat": 2, "fold": 0, "fit_s": 3.265995583991753, "pred_s": 0.941632666013902, "ok": true}

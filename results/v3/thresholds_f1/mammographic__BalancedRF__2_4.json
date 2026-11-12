@@ -1,0 +1,1 @@
+{"ds": "mammographic", "method": "BalancedRF", "repeat": 2, "fold": 4, "threshold": 0.24, "ok": true, "seconds": 1.701366166002117}

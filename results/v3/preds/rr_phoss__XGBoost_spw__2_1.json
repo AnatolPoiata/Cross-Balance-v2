@@ -1,0 +1,1 @@
+{"ds": "rr_phoss", "method": "XGBoost_spw", "repeat": 2, "fold": 1, "fit_s": 1.9802670409844723, "pred_s": 0.012764542014338076, "ok": true}

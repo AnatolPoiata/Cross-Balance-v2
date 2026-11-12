@@ -1,0 +1,1 @@
+{"ds": "synthetic_financial_fraud", "method": "LightGBM_spw", "repeat": 2, "fold": 2, "fit_s": 0.7335311670030933, "pred_s": 0.26075437502004206, "ok": true}

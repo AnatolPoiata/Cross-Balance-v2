@@ -1,0 +1,1 @@
+{"ds": "creditcard_ulb", "method": "RUSBoost", "repeat": 2, "fold": 3, "fit_s": 0.1369522080058232, "pred_s": 0.009676790999947116, "ok": true}

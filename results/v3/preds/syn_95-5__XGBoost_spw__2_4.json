@@ -1,0 +1,1 @@
+{"ds": "syn_95-5", "method": "XGBoost_spw", "repeat": 2, "fold": 4, "fit_s": 1.934194584027864, "pred_s": 0.05079124998883344, "ok": true}

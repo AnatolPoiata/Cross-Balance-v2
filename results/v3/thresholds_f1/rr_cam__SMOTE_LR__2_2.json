@@ -1,0 +1,1 @@
+{"ds": "rr_cam", "method": "SMOTE_LR", "repeat": 2, "fold": 2, "threshold": 0.8087490308297852, "ok": true, "seconds": 0.6196257499977946}

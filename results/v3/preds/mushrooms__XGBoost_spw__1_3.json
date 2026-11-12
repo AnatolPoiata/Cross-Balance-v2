@@ -1,0 +1,1 @@
+{"ds": "mushrooms", "method": "XGBoost_spw", "repeat": 1, "fold": 3, "fit_s": 2.643566125014331, "pred_s": 0.05364612498669885, "ok": true}

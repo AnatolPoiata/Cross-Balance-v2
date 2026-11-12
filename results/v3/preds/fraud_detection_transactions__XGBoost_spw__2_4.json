@@ -1,0 +1,1 @@
+{"ds": "fraud_detection_transactions", "method": "XGBoost_spw", "repeat": 2, "fold": 4, "fit_s": 0.8991239159950055, "pred_s": 0.03305374999763444, "ok": true}

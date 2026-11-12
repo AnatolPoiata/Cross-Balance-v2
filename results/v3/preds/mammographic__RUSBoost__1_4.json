@@ -1,0 +1,1 @@
+{"ds": "mammographic", "method": "RUSBoost", "repeat": 1, "fold": 4, "fit_s": 0.033845166995888576, "pred_s": 0.0006752080225851387, "ok": true}

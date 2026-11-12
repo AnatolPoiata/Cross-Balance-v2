@@ -1,0 +1,1 @@
+{"ds": "segment0", "method": "XGBoost_spw", "repeat": 0, "fold": 4, "fit_s": 0.09984983300091699, "pred_s": 0.0016981250082608312, "ok": true}

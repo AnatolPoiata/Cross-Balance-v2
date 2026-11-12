@@ -1,0 +1,1 @@
+{"ds": "rr_glass4", "method": "LightGBM", "repeat": 0, "fold": 4, "fit_s": 0.02185800002189353, "pred_s": 0.0008126249886117876, "ok": true}

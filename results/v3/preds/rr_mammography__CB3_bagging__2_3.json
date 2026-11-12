@@ -1,0 +1,1 @@
+{"ds": "rr_mammography", "method": "CB3_bagging", "repeat": 2, "fold": 3, "fit_s": 1.0145948749850504, "pred_s": 0.3771498749847524, "ok": true}

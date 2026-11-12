@@ -1,0 +1,1 @@
+{"ds": "rr_yeast_2vs8", "method": "RF_balanced", "repeat": 1, "fold": 3, "fit_s": 0.2687893330003135, "pred_s": 0.009828875015955418, "ok": true}

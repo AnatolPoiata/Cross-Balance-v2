@@ -1,0 +1,1 @@
+{"ds": "rr_compustat", "method": "CB3_boosting_v2", "repeat": 2, "fold": 2, "fit_s": 3.554432624980109, "pred_s": 0.31617779200314544, "ok": true}

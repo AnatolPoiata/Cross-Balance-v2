@@ -1,0 +1,1 @@
+{"ds": "mammographic", "method": "SMOTE_LR", "repeat": 1, "fold": 4, "fit_s": 0.0031454999989364296, "pred_s": 0.00021212498540990055, "ok": true}

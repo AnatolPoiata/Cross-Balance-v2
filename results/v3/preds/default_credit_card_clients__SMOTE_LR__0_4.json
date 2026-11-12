@@ -1,0 +1,1 @@
+{"ds": "default_credit_card_clients", "method": "SMOTE_LR", "repeat": 0, "fold": 4, "fit_s": 0.14385104100801982, "pred_s": 0.0012298749934416264, "ok": true}

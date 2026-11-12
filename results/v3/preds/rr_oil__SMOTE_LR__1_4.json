@@ -1,0 +1,1 @@
+{"ds": "rr_oil", "method": "SMOTE_LR", "repeat": 1, "fold": 4, "fit_s": 0.009436583000933751, "pred_s": 0.0004384579951874912, "ok": true}

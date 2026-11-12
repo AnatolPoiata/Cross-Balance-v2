@@ -1,0 +1,1 @@
+{"ds": "rr_mammography", "method": "RUSBoost", "repeat": 1, "fold": 3, "fit_s": 0.015779874986037612, "pred_s": 0.0006158340256661177, "ok": true}

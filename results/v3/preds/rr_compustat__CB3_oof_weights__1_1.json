@@ -1,0 +1,1 @@
+{"ds": "rr_compustat", "method": "CB3_oof_weights", "repeat": 1, "fold": 1, "fit_s": 10.934946833993308, "pred_s": 0.27650000000721775, "ok": true}

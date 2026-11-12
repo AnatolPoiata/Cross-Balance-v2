@@ -1,0 +1,1 @@
+{"ds": "rr_phoss", "method": "SMOTE_LR", "repeat": 1, "fold": 2, "fit_s": 0.4784602919826284, "pred_s": 0.010106500005349517, "ok": true}

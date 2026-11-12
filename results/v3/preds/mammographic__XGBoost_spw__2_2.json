@@ -1,0 +1,1 @@
+{"ds": "mammographic", "method": "XGBoost_spw", "repeat": 2, "fold": 2, "fit_s": 0.03822683298494667, "pred_s": 0.0015785839932505041, "ok": true}

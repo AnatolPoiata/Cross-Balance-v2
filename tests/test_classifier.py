@@ -7,7 +7,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
 from sklearn.tree import DecisionTreeClassifier
 
-from cross_balance import CrossBalanceClassifier, OMPClassifier
+from cross_balance import LEGACY_V2_PARAMS, CrossBalanceClassifier, OMPClassifier
 
 
 @pytest.fixture
@@ -60,23 +60,54 @@ def test_base_estimator_none_forces_logistic_regression(imbalanced_data):
 
 
 def test_defaults_match_validated_config():
-    # Regression guard: these defaults were chosen by iterative
-    # benchmarking (see results/iteration_*) -- a silent drift here would
-    # silently change what "CrossBalanceClassifier()" means.
+    # Regression guard: v0.2 defaults were frozen after the v3 development
+    # grid (development datasets only) and then evaluated once on the
+    # hold-out collection -- a silent drift here would silently change what
+    # "CrossBalanceClassifier()" means.
     params = CrossBalanceClassifier().get_params()
+    assert params["base_estimator"] == "mixed"
+    assert params["ensemble_type"] == "self_paced"
+    assert params["n_chunks"] == 50
+    assert params["ratio"] == 4.0
+    assert params["weighting"] == "uniform"
+    assert params["max_chunk_size"] == 3000
+    assert params["calibration"] == "prior"
+    assert params["decision_threshold"] == 0.5
+
+
+def test_legacy_v2_params_reproduce_iteration_7_config():
+    params = CrossBalanceClassifier(**LEGACY_V2_PARAMS).get_params()
     assert params["base_estimator"] == "auto"
     assert params["ensemble_type"] == "boosting"
-    assert params["n_chunks"] == 50
     assert params["ratio"] == 2.0
     assert params["weighting"] == "oof"
-    # Independently tuned in iteration 7 (see benchmarks/tune_thresholds.py
-    # and results/iteration_7) against a held-out synthetic tuning suite,
-    # then validated on the full 11-dataset benchmark -- raised the
-    # outright-win count from 5 to 6 of 11 vs. iteration 5's ad hoc-free
-    # 2-tier ladder, and from iteration 6's own ad hoc (5,10,30,100) tiers
-    # (which regressed 6 of 11 datasets).
     assert params["auto_density_thresholds"] == (2.9, 12.5, 19.3, 238.6)
-    assert params["max_chunk_size"] == 3000
+    assert params["calibration"] is None
+
+
+def test_prior_calibration_is_monotone_and_lowers_scores(imbalanced_data):
+    X, y = imbalanced_data
+    raw = CrossBalanceClassifier(n_chunks=6, calibration=None, random_state=0).fit(X, y)
+    cal = CrossBalanceClassifier(n_chunks=6, calibration="prior", random_state=0).fit(X, y)
+    p_raw, p_cal = raw.predict_proba(X)[:, 1], cal.predict_proba(X)[:, 1]
+    assert np.all(np.argsort(p_raw, kind="stable") == np.argsort(p_cal, kind="stable"))
+    assert p_cal.mean() < p_raw.mean()
+    # Prior-corrected scores should be close to the training prevalence on average.
+    assert abs(p_cal.mean() - y.mean()) < 0.5 * abs(p_raw.mean() - y.mean()) + 0.02
+
+
+def test_self_paced_mixed_alternates_base_learners(imbalanced_data):
+    X, y = imbalanced_data
+    clf = CrossBalanceClassifier(n_chunks=4, random_state=0).fit(X, y)
+    names = [type(e).__name__ for e in clf.estimators_]
+    assert names == ["HistGradientBoostingClassifier", "ExtraTreesClassifier"] * 2
+
+
+def test_f1_threshold_is_estimated(imbalanced_data):
+    X, y = imbalanced_data
+    clf = CrossBalanceClassifier(n_chunks=4, decision_threshold="f1", random_state=0).fit(X, y)
+    assert 0.0 < clf.threshold_ < 1.0
+    assert set(np.unique(clf.predict(X))) <= set(clf.classes_)
 
 
 def test_rejects_non_binary_targets():
@@ -107,7 +138,7 @@ def test_string_labels_supported():
 
 def test_auto_base_estimator_picks_tree_for_mid_density_chunks(imbalanced_data):
     X, y = imbalanced_data  # 2000 rows, 10 features, ~3% minority -> density ~18 (tree tier)
-    clf = CrossBalanceClassifier(base_estimator="auto", n_chunks=3, random_state=0).fit(X, y)
+    clf = CrossBalanceClassifier(base_estimator="auto", ratio=2.0, n_chunks=3, random_state=0).fit(X, y)
     assert isinstance(clf.estimators_[0], DecisionTreeClassifier)
 
 
@@ -203,8 +234,15 @@ def test_recovers_minority_class_reasonably_well(imbalanced_data):
     X, y = imbalanced_data
     clf = CrossBalanceClassifier(
         base_estimator=LogisticRegression(max_iter=500),
-        n_chunks=10, ratio=2, weighting="oof", random_state=0,
+        n_chunks=10, ratio=2, weighting="oof", calibration=None, random_state=0,
     ).fit(X, y)
     pred = clf.predict(X)
     recall = (pred[y == 1] == 1).mean()
     assert recall > 0.5
+
+
+def test_self_paced_chunk_handles_near_constant_hardness():
+    from cross_balance._partition import self_paced_chunk
+    h = np.full(100, 0.3) + np.r_[np.zeros(99), 5e-17]
+    idx = self_paced_chunk(h, 40, alpha=0.5, rng=np.random.RandomState(0))
+    assert len(idx) == 40

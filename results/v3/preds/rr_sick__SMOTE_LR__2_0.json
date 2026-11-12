@@ -1,0 +1,1 @@
+{"ds": "rr_sick", "method": "SMOTE_LR", "repeat": 2, "fold": 0, "fit_s": 0.013635666982736439, "pred_s": 0.0006415000243578106, "ok": true}

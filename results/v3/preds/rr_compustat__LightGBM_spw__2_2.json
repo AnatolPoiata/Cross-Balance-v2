@@ -1,0 +1,1 @@
+{"ds": "rr_compustat", "method": "LightGBM_spw", "repeat": 2, "fold": 2, "fit_s": 0.7895632500003558, "pred_s": 0.11326595800346695, "ok": true}

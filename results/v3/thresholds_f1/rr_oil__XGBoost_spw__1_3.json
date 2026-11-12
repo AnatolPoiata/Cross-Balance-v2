@@ -1,0 +1,1 @@
+{"ds": "rr_oil", "method": "XGBoost_spw", "repeat": 1, "fold": 3, "threshold": 0.14606936275959015, "ok": true, "seconds": 0.42619125003693625}

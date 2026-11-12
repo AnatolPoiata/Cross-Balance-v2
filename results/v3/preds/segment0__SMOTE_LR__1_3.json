@@ -1,0 +1,1 @@
+{"ds": "segment0", "method": "SMOTE_LR", "repeat": 1, "fold": 3, "fit_s": 0.005598834017291665, "pred_s": 0.00029366600210778415, "ok": true}

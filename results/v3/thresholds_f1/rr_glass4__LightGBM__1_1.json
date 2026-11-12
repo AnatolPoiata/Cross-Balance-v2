@@ -1,0 +1,1 @@
+{"ds": "rr_glass4", "method": "LightGBM", "repeat": 1, "fold": 1, "threshold": 0.9567857890374004, "ok": true, "seconds": 0.04836895799962804}

@@ -1,0 +1,1 @@
+{"ds": "rr_cam", "method": "XGBoost_spw", "repeat": 2, "fold": 0, "fit_s": 1.9513237079954706, "pred_s": 0.0314566669985652, "ok": true}

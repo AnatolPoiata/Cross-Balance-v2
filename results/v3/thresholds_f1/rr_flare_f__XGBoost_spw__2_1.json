@@ -1,0 +1,1 @@
+{"ds": "rr_flare_f", "method": "XGBoost_spw", "repeat": 2, "fold": 1, "threshold": 0.7487596869468689, "ok": true, "seconds": 0.09802216599928215}

@@ -1,0 +1,1 @@
+{"ds": "segment0", "method": "LightGBM_spw", "repeat": 1, "fold": 1, "fit_s": 0.20362170800217427, "pred_s": 0.012050999997882172, "ok": true}

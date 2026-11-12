@@ -1,0 +1,1 @@
+{"ds": "rr_vowel0", "method": "SMOTE_LR", "repeat": 1, "fold": 4, "fit_s": 0.005399708985351026, "pred_s": 0.00029837500187568367, "ok": true}

@@ -1,0 +1,1 @@
+{"ds": "rr_car_good", "method": "LightGBM", "repeat": 0, "fold": 1, "fit_s": 0.1033947910182178, "pred_s": 0.007062749995384365, "ok": true}

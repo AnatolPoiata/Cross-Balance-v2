@@ -1,0 +1,1 @@
+{"ds": "mammographic", "method": "RF_balanced", "repeat": 1, "fold": 2, "fit_s": 0.36284304200671613, "pred_s": 0.028121833980549127, "ok": true}

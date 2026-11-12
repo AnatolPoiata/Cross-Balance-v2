@@ -1,0 +1,1 @@
+{"ds": "rr_sick", "method": "LightGBM", "repeat": 2, "fold": 4, "threshold": 0.07224079328312755, "ok": true, "seconds": 0.47145616699708626}

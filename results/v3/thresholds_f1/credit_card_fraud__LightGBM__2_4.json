@@ -1,0 +1,1 @@
+{"ds": "credit_card_fraud", "method": "LightGBM", "repeat": 2, "fold": 4, "threshold": 0.11967149277090584, "ok": true, "seconds": 4.206475833954755}

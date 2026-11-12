@@ -1,0 +1,1 @@
+{"ds": "fraud_detection_transactions", "method": "CB3_auto_ladder", "repeat": 2, "fold": 4, "fit_s": 2.4178500839916524, "pred_s": 0.4091387499938719, "ok": true}

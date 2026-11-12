@@ -1,0 +1,1 @@
+{"ds": "rr_mammography", "method": "XGBoost_spw", "repeat": 0, "fold": 2, "fit_s": 0.2180234169936739, "pred_s": 0.007866957981605083, "ok": true}

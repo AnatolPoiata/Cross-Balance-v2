@@ -1,0 +1,1 @@
+{"ds": "rr_car_good", "method": "XGBoost_spw", "repeat": 1, "fold": 4, "threshold": 0.1707335114479065, "ok": true, "seconds": 0.20113045803736895}

@@ -1,0 +1,1 @@
+{"ds": "fraud_detection_transactions", "method": "EasyEnsemble", "repeat": 1, "fold": 4, "fit_s": 13.888885791995563, "pred_s": 0.365978832996916, "ok": true}

@@ -1,0 +1,1 @@
+{"ds": "credit_card_fraud", "method": "CB3_bagging", "repeat": 0, "fold": 2, "fit_s": 1.9136937080183998, "pred_s": 1.0681575000053272, "ok": true}

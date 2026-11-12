@@ -1,0 +1,1 @@
+{"ds": "rr_compustat", "method": "CB3_f1_threshold", "repeat": 2, "fold": 3, "fit_s": 14.029458000004524, "pred_s": 0.33106550000957213, "ok": true}

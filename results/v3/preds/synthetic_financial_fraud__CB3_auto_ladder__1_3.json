@@ -1,0 +1,1 @@
+{"ds": "synthetic_financial_fraud", "method": "CB3_auto_ladder", "repeat": 1, "fold": 3, "fit_s": 2.6429137499944773, "pred_s": 0.4257802909996826, "ok": true}

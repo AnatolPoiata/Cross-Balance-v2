@@ -1,0 +1,1 @@
+{"ds": "rr_boundary", "method": "LightGBM", "repeat": 2, "fold": 4, "fit_s": 0.34856449998915195, "pred_s": 0.04611745898728259, "ok": true}

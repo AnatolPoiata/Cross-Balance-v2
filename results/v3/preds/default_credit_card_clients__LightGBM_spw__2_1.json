@@ -1,0 +1,1 @@
+{"ds": "default_credit_card_clients", "method": "LightGBM_spw", "repeat": 2, "fold": 1, "fit_s": 0.9094317910203245, "pred_s": 0.1304693749989383, "ok": true}

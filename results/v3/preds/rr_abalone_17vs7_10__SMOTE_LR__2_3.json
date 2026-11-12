@@ -1,0 +1,1 @@
+{"ds": "rr_abalone_17vs7_10", "method": "SMOTE_LR", "repeat": 2, "fold": 3, "fit_s": 0.007222291984362528, "pred_s": 0.00030920899007469416, "ok": true}

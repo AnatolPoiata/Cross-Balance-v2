@@ -1,0 +1,1 @@
+{"ds": "syn_95-5", "method": "SMOTE_LR", "repeat": 1, "fold": 4, "fit_s": 0.07835904200328514, "pred_s": 0.0012488750217016786, "ok": true}

@@ -1,0 +1,1 @@
+{"ds": "rr_hypo", "method": "LightGBM", "repeat": 0, "fold": 2, "fit_s": 0.11404508401756175, "pred_s": 0.016324459022143856, "ok": true}

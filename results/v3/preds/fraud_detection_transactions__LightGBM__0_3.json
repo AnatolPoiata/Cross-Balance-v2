@@ -1,0 +1,1 @@
+{"ds": "fraud_detection_transactions", "method": "LightGBM", "repeat": 0, "fold": 3, "fit_s": 0.7118882079957984, "pred_s": 0.09300116600934416, "ok": true}

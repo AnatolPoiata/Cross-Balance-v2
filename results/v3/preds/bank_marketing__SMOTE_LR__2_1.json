@@ -1,0 +1,1 @@
+{"ds": "bank_marketing", "method": "SMOTE_LR", "repeat": 2, "fold": 1, "fit_s": 0.40074058398022316, "pred_s": 0.010319207998691127, "ok": true}

@@ -1,0 +1,1 @@
+{"ds": "fraud_detection_transactions", "method": "EasyEnsemble", "repeat": 0, "fold": 2, "threshold": 0.6533547168035538, "ok": true, "seconds": 34.2533961670124}

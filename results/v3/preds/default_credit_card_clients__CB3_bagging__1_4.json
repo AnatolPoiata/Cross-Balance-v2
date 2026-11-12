@@ -1,0 +1,1 @@
+{"ds": "default_credit_card_clients", "method": "CB3_bagging", "repeat": 1, "fold": 4, "fit_s": 2.6882151250028983, "pred_s": 0.5974055409897119, "ok": true}

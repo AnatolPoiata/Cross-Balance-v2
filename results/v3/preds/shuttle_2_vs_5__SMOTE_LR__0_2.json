@@ -1,0 +1,1 @@
+{"ds": "shuttle_2_vs_5", "method": "SMOTE_LR", "repeat": 0, "fold": 2, "fit_s": 0.005936833971645683, "pred_s": 0.0002895829966291785, "ok": true}

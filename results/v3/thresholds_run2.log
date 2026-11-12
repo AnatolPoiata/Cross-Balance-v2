@@ -1,0 +1,19 @@
+4573 threshold jobs
+[Parallel(n_jobs=7)]: Using backend LokyBackend with 7 concurrent workers.
+[Parallel(n_jobs=7)]: Done   4 tasks      | elapsed:    3.1s
+[Parallel(n_jobs=7)]: Done  58 tasks      | elapsed:  1.1min
+[Parallel(n_jobs=7)]: Done 148 tasks      | elapsed:  3.7min
+[Parallel(n_jobs=7)]: Done 274 tasks      | elapsed:  6.8min
+[Parallel(n_jobs=7)]: Done 436 tasks      | elapsed:  9.1min
+[Parallel(n_jobs=7)]: Done 634 tasks      | elapsed: 10.3min
+[Parallel(n_jobs=7)]: Done 868 tasks      | elapsed: 16.8min
+[Parallel(n_jobs=7)]: Done 1138 tasks      | elapsed: 36.4min
+[Parallel(n_jobs=7)]: Done 1444 tasks      | elapsed: 40.8min
+[Parallel(n_jobs=7)]: Done 1786 tasks      | elapsed: 43.4min
+[Parallel(n_jobs=7)]: Done 2178 tasks      | elapsed: 45.4min
+[Parallel(n_jobs=7)]: Done 2636 tasks      | elapsed: 46.1min
+[Parallel(n_jobs=7)]: Done 3203 tasks      | elapsed: 47.1min
+[Parallel(n_jobs=7)]: Done 3885 tasks      | elapsed: 47.9min
+[Parallel(n_jobs=7)]: Done 4560 out of 4573 | elapsed: 48.5min remaining:    8.3s
+[Parallel(n_jobs=7)]: Done 4573 out of 4573 | elapsed: 48.5min finished
+finished in 2911s; fallbacks: 35

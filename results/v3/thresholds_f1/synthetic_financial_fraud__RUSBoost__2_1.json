@@ -1,0 +1,1 @@
+{"ds": "synthetic_financial_fraud", "method": "RUSBoost", "repeat": 2, "fold": 1, "threshold": 0.8620950414408888, "ok": true, "seconds": 0.14554733299883083}

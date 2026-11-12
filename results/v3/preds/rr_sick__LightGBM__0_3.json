@@ -1,0 +1,1 @@
+{"ds": "rr_sick", "method": "LightGBM", "repeat": 0, "fold": 3, "fit_s": 0.14488891698420048, "pred_s": 0.03940079198218882, "ok": true}

@@ -1,0 +1,1 @@
+{"ds": "communities_crime", "method": "LR_balanced", "repeat": 2, "fold": 3, "fit_s": 0.033718249993398786, "pred_s": 0.00045058398973196745, "ok": true}

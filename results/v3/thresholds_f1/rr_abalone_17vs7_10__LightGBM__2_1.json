@@ -1,0 +1,1 @@
+{"ds": "rr_abalone_17vs7_10", "method": "LightGBM", "repeat": 2, "fold": 1, "threshold": 0.0010587349200569392, "ok": true, "seconds": 0.3593357080244459}

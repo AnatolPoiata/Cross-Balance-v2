@@ -1,0 +1,1 @@
+{"ds": "ailerons", "method": "SMOTE_LR", "repeat": 2, "fold": 4, "fit_s": 0.0731161670119036, "pred_s": 0.0008779580239206553, "ok": true}

@@ -32,3 +32,42 @@ def weighted_chunks(n_majority, chunk_size, n_chunks, weights, random_state=None
         idx = rng.choice(n_majority, size=chunk_size, replace=True, p=p)
         chunks.append(idx)
     return chunks
+
+
+def self_paced_chunk(hardness, chunk_size, alpha, rng, k_bins=5):
+    """Hardness-harmonised majority sample (self-paced under-sampling, Liu
+    et al., 2020). ``hardness`` is the ensemble-so-far probability of the
+    minority class for every majority sample; samples are binned into
+    ``k_bins`` equal-width hardness bins and each bin receives a share of
+    the chunk proportional to ``1 / (mean_bin_hardness + alpha)``. Early in
+    training (``alpha`` near 0) easy and hard regions are balanced; as
+    ``alpha`` grows the share approaches uniform-per-bin, so the few hard
+    (borderline / noisy) samples are never allowed to dominate a chunk —
+    the failure mode of the multiplicative ``'boosting'`` update.
+    """
+    n = len(hardness)
+    if hardness.max() == hardness.min():
+        return rng.choice(n, chunk_size, replace=chunk_size > n)
+    try:
+        pops, edges = np.histogram(hardness, bins=k_bins)
+    except ValueError:  # range too small for k finite-width bins: hardness is effectively constant
+        return rng.choice(n, chunk_size, replace=chunk_size > n)
+    bins, contrib = [], np.zeros(k_bins)
+    for b in range(k_bins):
+        upper = hardness <= edges[b + 1] if b == k_bins - 1 else hardness < edges[b + 1]
+        idx = np.where((hardness >= edges[b]) & upper)[0]
+        bins.append(idx)
+        if len(idx):
+            contrib[b] = hardness[idx].mean()
+    with np.errstate(divide="ignore"):
+        w = 1.0 / (contrib + alpha)
+    w[(pops == 0) | ~np.isfinite(w)] = 0.0
+    n_bins = np.floor(chunk_size * w / w.sum()).astype(int)
+    order, i = np.argsort(-pops), 0
+    while n_bins.sum() < chunk_size:
+        if pops[order[i % k_bins]] > 0:
+            n_bins[order[i % k_bins]] += 1
+        i += 1
+    parts = [rng.choice(bins[b], n_bins[b], replace=n_bins[b] > pops[b])
+             for b in range(k_bins) if n_bins[b] > 0]
+    return np.concatenate(parts)

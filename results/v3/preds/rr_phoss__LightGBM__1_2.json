@@ -1,0 +1,1 @@
+{"ds": "rr_phoss", "method": "LightGBM", "repeat": 1, "fold": 2, "fit_s": 0.5437310830166098, "pred_s": 0.10512691701296717, "ok": true}

@@ -1,0 +1,1 @@
+{"ds": "rr_compustat", "method": "BalancedRF", "repeat": 1, "fold": 4, "fit_s": 1.0880772909731604, "pred_s": 0.06066920899320394, "ok": true}

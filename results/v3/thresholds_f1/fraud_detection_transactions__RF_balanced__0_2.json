@@ -1,0 +1,1 @@
+{"ds": "fraud_detection_transactions", "method": "RF_balanced", "repeat": 0, "fold": 2, "threshold": 0.5831772179952412, "ok": true, "seconds": 18.57987499999581}

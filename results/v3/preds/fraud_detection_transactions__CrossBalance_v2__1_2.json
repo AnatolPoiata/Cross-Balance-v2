@@ -1,0 +1,1 @@
+{"ds": "fraud_detection_transactions", "method": "CrossBalance_v2", "repeat": 1, "fold": 2, "fit_s": 6.115547000023071, "pred_s": 0.4113162500143517, "ok": true}

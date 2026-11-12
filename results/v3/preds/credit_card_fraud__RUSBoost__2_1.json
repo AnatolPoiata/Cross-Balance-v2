@@ -1,0 +1,1 @@
+{"ds": "credit_card_fraud", "method": "RUSBoost", "repeat": 2, "fold": 1, "fit_s": 0.04236591700464487, "pred_s": 0.0030994169937912375, "ok": true}

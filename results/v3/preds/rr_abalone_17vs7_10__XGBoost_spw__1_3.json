@@ -1,0 +1,1 @@
+{"ds": "rr_abalone_17vs7_10", "method": "XGBoost_spw", "repeat": 1, "fold": 3, "fit_s": 0.08266566699603572, "pred_s": 0.002809874975355342, "ok": true}

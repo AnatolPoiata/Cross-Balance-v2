@@ -1,0 +1,1 @@
+{"ds": "rr_cam", "method": "LightGBM_spw", "repeat": 2, "fold": 4, "fit_s": 0.6598986250173766, "pred_s": 0.16423562497948296, "ok": true}

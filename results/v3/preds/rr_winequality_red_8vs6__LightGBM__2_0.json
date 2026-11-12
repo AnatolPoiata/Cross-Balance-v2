@@ -1,0 +1,1 @@
+{"ds": "rr_winequality_red_8vs6", "method": "LightGBM", "repeat": 2, "fold": 0, "fit_s": 0.0515118750045076, "pred_s": 0.0034087499952875078, "ok": true}

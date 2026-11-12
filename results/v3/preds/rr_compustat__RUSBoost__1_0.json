@@ -1,0 +1,1 @@
+{"ds": "rr_compustat", "method": "RUSBoost", "repeat": 1, "fold": 0, "fit_s": 0.02571304197772406, "pred_s": 0.0007155830098781735, "ok": true}

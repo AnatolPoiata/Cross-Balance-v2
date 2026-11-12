@@ -50,7 +50,20 @@ prototype in the sibling `Cross-Balance/` folder (`cbc_v1.py` → `cbc_v2.py`).
   (`benchmarks/tune_ratio.py`, `results/ratio_tuning.txt`) confirms
   `ratio=2.0` — used unchanged and untested across all 7 iterations — was
   already the best choice.
-- **Article**: a full draft is in `article/draft.md`, covering the method,
+- **Phase D / v3** (done, October 2026): answered the journal review
+  (`article/recenzie.docx`, `article/Cross_Balance_ECOFORUM_Review.docx`).
+  Diagnosed v2's precision 0.90 / recall 0.04 as a consequence of its
+  unbounded multiplicative boosting update. Redesigned the method (v0.2):
+  self-paced hardness sampling, alternating HistGB/ExtraTrees members,
+  r = 4, uniform weights, prior-corrected probabilities. Froze it on the
+  development datasets (`results/v3_devgrid/`), then evaluated it once on 17
+  hold-out datasets (ULB credit-card fraud + 16 Park & Im sets) against 10
+  stronger baselines (XGBoost/LightGBM, RF, BRF, RUSBoost, EasyEnsemble,
+  Self-paced Ensemble...). Repeated CV, Friedman/Nemenyi/Wilcoxon-Holm, and
+  a fraud-cost analysis. v3 ranks first (hold-out AP rank 2.65 vs 4.76) and
+  wins every Holm-corrected paired test there. See `article/RESEARCH_PLAN.md`
+  and `results/v3/analysis/`; article: `article/CrossBalance_ECOFORUM_{EN,RO}.docx`.
+- **Article (v2 era)**: a full draft was in `article/draft.md`, covering the method,
   all 7 iterations (including iteration 6's negative result and iteration
   7's resolution), the extended validation above, and honest limitations
   (see `REFERENCES.md` for source material).
@@ -64,11 +77,13 @@ pip install -e ".[boost,plot,bench,dev]"
 ## Usage
 
 ```python
-from cross_balance import CrossBalanceClassifier
+from cross_balance import CrossBalanceClassifier, LEGACY_V2_PARAMS
 
-# Defaults reflect the best config validated across Phase C's 7 benchmark rounds,
-# including iteration 7's independently-tuned auto_density_thresholds.
+# v0.2 defaults: self-paced sampling, mixed HistGB/ExtraTrees members, r=4,
+# prior-corrected probabilities (frozen on development data, see Phase D).
 clf = CrossBalanceClassifier(random_state=42)
+# decision_threshold="f1" estimates an F1-optimal threshold internally;
+# CrossBalanceClassifier(**LEGACY_V2_PARAMS) reproduces v0.1 / iteration 7 exactly.
 clf.fit(X_train, y_train)
 proba = clf.predict_proba(X_test)
 ```
@@ -91,6 +106,16 @@ python -m benchmarks.run_benchmark --dataset real:synthetic_financial_fraud --ma
 Results land in `results/phase_synthetic/<ratio>/` or `results/phase_real/<name>/`
 as `results_summary.csv` and `report.html`. Pass `--out-root results/iteration_N`
 to avoid overwriting a prior snapshot when iterating on the method.
+
+v3 evaluation (all 32 datasets, 12 methods + ablations, ~2.5 h on 8 cores):
+
+```bash
+python -m benchmarks.run_v3 --group all --ablations --jobs 8   # writes results/v3/preds/
+python -m benchmarks.analyze_v3                                 # results/v3/analysis/
+python -m article.make_figures_v3                               # article/figures_v3/
+python -m benchmarks.analyze_v3 --article                       # results/v3/analysis_article/
+python -m article.build_article                                 # article/CrossBalance_ECOFORUM_{EN,RO}.docx
+```
 
 ## Layout
 

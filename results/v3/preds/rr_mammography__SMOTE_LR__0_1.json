@@ -1,0 +1,1 @@
+{"ds": "rr_mammography", "method": "SMOTE_LR", "repeat": 0, "fold": 1, "fit_s": 0.010037209023721516, "pred_s": 0.00037620801595039666, "ok": true}

@@ -1,0 +1,1 @@
+{"ds": "bank_marketing", "method": "CB3_bagging", "repeat": 2, "fold": 3, "fit_s": 5.282719334005378, "pred_s": 0.7534918750170618, "ok": true}

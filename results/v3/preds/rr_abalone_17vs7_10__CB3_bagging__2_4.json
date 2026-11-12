@@ -1,0 +1,1 @@
+{"ds": "rr_abalone_17vs7_10", "method": "CB3_bagging", "repeat": 2, "fold": 4, "fit_s": 0.7148721660196315, "pred_s": 0.05931795798824169, "ok": true}

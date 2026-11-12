@@ -1,0 +1,1 @@
+{"ds": "rr_cam", "method": "SMOTE_LR", "repeat": 2, "fold": 3, "fit_s": 0.3626653749961406, "pred_s": 0.005899459007196128, "ok": true}

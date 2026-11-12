@@ -1,0 +1,1 @@
+{"ds": "rr_yeast_2vs8", "method": "CB3_bagging", "repeat": 2, "fold": 4, "fit_s": 0.42084970901487395, "pred_s": 0.04081558299367316, "ok": true}

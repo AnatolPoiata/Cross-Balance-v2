@@ -1,0 +1,1 @@
+{"ds": "rr_glass4", "method": "SMOTE_LR", "repeat": 1, "fold": 3, "fit_s": 0.002708832995267585, "pred_s": 0.0002091249916702509, "ok": true}

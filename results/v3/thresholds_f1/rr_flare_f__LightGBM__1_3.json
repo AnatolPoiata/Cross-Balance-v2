@@ -1,0 +1,1 @@
+{"ds": "rr_flare_f", "method": "LightGBM", "repeat": 1, "fold": 3, "threshold": 0.019925957360541605, "ok": true, "seconds": 0.12309150001965463}

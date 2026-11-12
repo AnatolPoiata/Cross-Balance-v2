@@ -1,0 +1,1 @@
+{"ds": "ailerons", "method": "XGBoost_spw", "repeat": 2, "fold": 0, "fit_s": 0.6736872080073226, "pred_s": 0.010842167015653104, "ok": true}

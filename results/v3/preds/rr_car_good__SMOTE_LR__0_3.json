@@ -1,0 +1,1 @@
+{"ds": "rr_car_good", "method": "SMOTE_LR", "repeat": 0, "fold": 3, "fit_s": 0.0037815829855389893, "pred_s": 0.00024395898799411952, "ok": true}

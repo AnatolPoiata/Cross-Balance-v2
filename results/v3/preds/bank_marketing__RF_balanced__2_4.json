@@ -1,0 +1,1 @@
+{"ds": "bank_marketing", "method": "RF_balanced", "repeat": 2, "fold": 4, "fit_s": 7.220534958993085, "pred_s": 0.22712104200036265, "ok": true}

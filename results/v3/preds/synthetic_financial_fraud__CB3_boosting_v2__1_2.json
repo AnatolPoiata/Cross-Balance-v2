@@ -1,0 +1,1 @@
+{"ds": "synthetic_financial_fraud", "method": "CB3_boosting_v2", "repeat": 1, "fold": 2, "fit_s": 4.19943462498486, "pred_s": 0.8221352499967907, "ok": true}

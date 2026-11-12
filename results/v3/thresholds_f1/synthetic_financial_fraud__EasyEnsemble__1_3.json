@@ -1,0 +1,1 @@
+{"ds": "synthetic_financial_fraud", "method": "EasyEnsemble", "repeat": 1, "fold": 3, "threshold": 0.6052451366791771, "ok": true, "seconds": 2.378893708984833}

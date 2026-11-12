@@ -1,0 +1,1 @@
+{"ds": "rr_yeast_2vs8", "method": "XGBoost_spw", "repeat": 0, "fold": 3, "fit_s": 0.028121457988163456, "pred_s": 0.0011047500011045486, "ok": true}

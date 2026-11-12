@@ -1,0 +1,1 @@
+{"ds": "creditcard_ulb", "method": "BalancedRF", "repeat": 2, "fold": 3, "fit_s": 5.991387541987933, "pred_s": 0.5982175829994958, "ok": true}

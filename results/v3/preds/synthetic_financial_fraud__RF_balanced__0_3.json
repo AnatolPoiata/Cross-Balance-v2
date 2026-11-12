@@ -1,0 +1,1 @@
+{"ds": "synthetic_financial_fraud", "method": "RF_balanced", "repeat": 0, "fold": 3, "fit_s": 6.208719749993179, "pred_s": 0.10551570900133811, "ok": true}

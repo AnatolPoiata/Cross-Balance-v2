@@ -1,0 +1,1 @@
+{"ds": "bank_marketing", "method": "XGBoost_spw", "repeat": 0, "fold": 2, "fit_s": 1.6224167500040494, "pred_s": 0.031459499994525686, "ok": true}

@@ -351,6 +351,61 @@ def load_bank_marketing():
     return X, y
 
 
+# --- Hold-out collection added after the v3 design freeze -----------------
+# Park & Im (2024) "Experimental dataset for imbalanced classification:
+# application of relabeling & raking algorithm", Mendeley Data,
+# doi:10.17632/pb3jd7vz9z.1 -- 16 KEEL/UCI-derived sets grouped by feature
+# type ([Cate]/[Conti]/[Mixed]). Every file carries a leading row-index
+# column (named "", "Unnamed: 0" or "0") and the label in the last column.
+RR_DIR = RAW_DIR / "Experimental Dataset for Imbalanced Classification Application of Relabeling & Ranking Algorithm"
+RR_FILES = {
+    "rr_led": "[Cate] Led.csv", "rr_phoss": "[Cate] PhosS.csv", "rr_boundary": "[Cate] boundary.csv",
+    "rr_cam": "[Cate] cam.csv", "rr_car_good": "[Cate] car-good.csv",
+    "rr_compustat": "[Conti] compustat.csv", "rr_glass4": "[Conti] glass4.csv",
+    "rr_mammography": "[Conti] mammography.csv", "rr_oil": "[Conti] oil.csv",
+    "rr_winequality_red_8vs6": "[Conti] winequality-red8vs6.csv", "rr_yeast_2vs8": "[Conti] yeast-2vs8.csv",
+    "rr_abalone_17vs7_10": "[Mixed] abalone-17vs7-8-9-10.csv", "rr_flare_f": "[Mixed] flare-F.csv",
+    "rr_hypo": "[Mixed] hypo.csv", "rr_sick": "[Mixed] sick.csv", "rr_vowel0": "[Mixed] vowel0.csv",
+}
+
+
+def load_relabeling_raking(name):
+    path = RR_DIR / RR_FILES[name]
+    if not path.exists():
+        raise _missing_file_error(path, name)
+    df = pd.read_csv(path)
+    df = df.drop(columns=df.columns[0])  # row index (first value is corrupted in Led.csv)
+    target = df.columns[-1]
+    y_raw = df[target].astype(str).str.strip().str.strip("'")
+    y = _encode_target(y_raw, verbose_name=target)
+    X_df = df.drop(columns=[target])
+    for c in X_df.columns:  # numeric columns stored as text stay numeric
+        if not pd.api.types.is_numeric_dtype(X_df[c]):
+            conv = pd.to_numeric(X_df[c], errors="coerce")
+            if conv.notna().mean() > 0.95:
+                X_df[c] = conv
+    numeric_cols = X_df.select_dtypes(include=[np.number]).columns.tolist()
+    categorical_cols = [c for c in X_df.columns if c not in numeric_cols]
+    parts = [X_df[numeric_cols].apply(lambda s: s.fillna(s.median()))]
+    if categorical_cols:
+        parts.append(pd.get_dummies(X_df[categorical_cols].astype(str), drop_first=False))
+    return pd.concat(parts, axis=1).to_numpy(dtype=float), y
+
+
+def load_creditcard_ulb():
+    """ULB / Worldline credit-card fraud data (Dal Pozzolo et al., 2015):
+    284,807 European card transactions from September 2013, 492 frauds
+    (0.172%), PCA components V1-V28 plus Time and Amount. Target: Class.
+    """
+    path = RAW_DIR / "credit_card" / "creditcard.csv"
+    if not path.exists():
+        raise _missing_file_error(path, "creditcard_ulb")
+    df = pd.read_csv(path)
+    y = df["Class"].astype(int).to_numpy()
+    X = df.drop(columns=["Class"]).to_numpy(dtype=float)
+    return X, y
+
+
 REAL_DATASETS = {
     "communities_crime": load_communities_crime,
     "credit_card_fraud": load_credit_card_fraud,
@@ -365,4 +420,15 @@ REAL_DATASETS = {
     "mushrooms": load_mushrooms,
     "bank_marketing": load_bank_marketing,
     # bioassay, nih_chest_xray_sample: excluded per project decision.
+    "creditcard_ulb": load_creditcard_ulb,
+    **{k: (lambda k=k: load_relabeling_raking(k)) for k in RR_FILES},
 }
+
+# Datasets that guided development of v1-v3 (incl. the v3 design grid) vs.
+# datasets first touched only after the v3 configuration was frozen.
+DEVELOPMENT_DATASETS = [
+    "communities_crime", "credit_card_fraud", "synthetic_financial_fraud", "fraud_detection_transactions",
+    "credit_card_fraud_2023", "ailerons", "segment0", "shuttle_2_vs_5",
+    "default_credit_card_clients", "mammographic", "mushrooms", "bank_marketing",
+]
+HOLDOUT_DATASETS = ["creditcard_ulb", *RR_FILES]

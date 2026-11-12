@@ -1,0 +1,1 @@
+{"ds": "bank_marketing", "method": "LightGBM", "repeat": 1, "fold": 1, "fit_s": 0.7201864579983521, "pred_s": 0.14179441699525341, "ok": true}

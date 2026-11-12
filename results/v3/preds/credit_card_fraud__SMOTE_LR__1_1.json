@@ -1,0 +1,1 @@
+{"ds": "credit_card_fraud", "method": "SMOTE_LR", "repeat": 1, "fold": 1, "fit_s": 0.29683712500263937, "pred_s": 0.0015910410147625953, "ok": true}

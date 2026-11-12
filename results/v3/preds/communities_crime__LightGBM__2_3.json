@@ -1,0 +1,1 @@
+{"ds": "communities_crime", "method": "LightGBM", "repeat": 2, "fold": 3, "fit_s": 0.5487325830035843, "pred_s": 0.021011500008171424, "ok": true}

@@ -1,0 +1,1 @@
+{"ds": "rr_oil", "method": "LightGBM_spw", "repeat": 1, "fold": 4, "threshold": 0.005801715318218001, "ok": true, "seconds": 0.5207988329930231}

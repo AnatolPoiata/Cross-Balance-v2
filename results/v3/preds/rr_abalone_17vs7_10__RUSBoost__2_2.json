@@ -1,0 +1,1 @@
+{"ds": "rr_abalone_17vs7_10", "method": "RUSBoost", "repeat": 2, "fold": 2, "fit_s": 0.007695624983171001, "pred_s": 0.0003752920019906014, "ok": true}

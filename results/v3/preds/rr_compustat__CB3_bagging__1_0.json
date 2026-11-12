@@ -1,0 +1,1 @@
+{"ds": "rr_compustat", "method": "CB3_bagging", "repeat": 1, "fold": 0, "fit_s": 2.626116749976063, "pred_s": 0.29954108301899396, "ok": true}

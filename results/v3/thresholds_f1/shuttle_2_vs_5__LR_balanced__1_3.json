@@ -1,0 +1,1 @@
+{"ds": "shuttle_2_vs_5", "method": "LR_balanced", "repeat": 1, "fold": 3, "threshold": 0.9047774578084005, "ok": true, "seconds": 0.034630540991202}

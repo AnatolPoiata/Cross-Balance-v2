@@ -1,0 +1,1 @@
+{"ds": "rr_mammography", "method": "LightGBM", "repeat": 2, "fold": 0, "threshold": 0.06926368119768957, "ok": true, "seconds": 1.0734179170103744}

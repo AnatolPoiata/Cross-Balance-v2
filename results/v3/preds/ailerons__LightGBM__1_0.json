@@ -1,0 +1,1 @@
+{"ds": "ailerons", "method": "LightGBM", "repeat": 1, "fold": 0, "fit_s": 0.497987708018627, "pred_s": 0.08365620800759643, "ok": true}

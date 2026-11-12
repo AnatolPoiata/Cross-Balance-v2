@@ -1,0 +1,1 @@
+{"ds": "rr_compustat", "method": "LR_balanced", "repeat": 1, "fold": 2, "fit_s": 0.029903334012487903, "pred_s": 0.0005245420034043491, "ok": true}

@@ -1,0 +1,1 @@
+{"ds": "credit_card_fraud_2023", "method": "RF_balanced", "repeat": 0, "fold": 1, "fit_s": 42.30200683299336, "pred_s": 0.3673513749963604, "ok": true}

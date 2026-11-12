@@ -1,0 +1,1 @@
+{"ds": "default_credit_card_clients", "method": "BalancedRF", "repeat": 1, "fold": 3, "threshold": 0.49333333333333335, "ok": true, "seconds": 17.27224262501113}

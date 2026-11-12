@@ -1,0 +1,1 @@
+{"ds": "rr_mammography", "method": "BalancedRF", "repeat": 2, "fold": 3, "fit_s": 0.6223482500063255, "pred_s": 0.03709437500219792, "ok": true}

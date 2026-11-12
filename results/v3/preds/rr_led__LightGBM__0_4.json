@@ -1,0 +1,1 @@
+{"ds": "rr_led", "method": "LightGBM", "repeat": 0, "fold": 4, "fit_s": 0.020506041997577995, "pred_s": 0.0012424589949660003, "ok": true}

@@ -1,0 +1,1 @@
+{"ds": "mammographic", "method": "LightGBM_spw", "repeat": 0, "fold": 3, "fit_s": 0.06620433300849982, "pred_s": 0.006476584007032216, "ok": true}

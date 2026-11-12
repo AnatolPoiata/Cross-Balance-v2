@@ -1,0 +1,1 @@
+{"ds": "creditcard_ulb", "method": "LightGBM_spw", "repeat": 1, "fold": 3, "threshold": 1.0, "ok": true, "seconds": 14.993441083002836}

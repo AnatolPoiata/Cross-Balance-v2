@@ -1,0 +1,1 @@
+{"ds": "rr_yeast_2vs8", "method": "LightGBM", "repeat": 2, "fold": 0, "threshold": 3.851177615127378e-08, "ok": true, "seconds": 0.08629095897777006}

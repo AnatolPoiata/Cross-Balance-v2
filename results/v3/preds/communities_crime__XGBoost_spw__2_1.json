@@ -1,0 +1,1 @@
+{"ds": "communities_crime", "method": "XGBoost_spw", "repeat": 2, "fold": 1, "fit_s": 0.5629729170177598, "pred_s": 0.00231858401093632, "ok": true}

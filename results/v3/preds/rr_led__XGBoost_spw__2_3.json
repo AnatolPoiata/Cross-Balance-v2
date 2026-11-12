@@ -1,0 +1,1 @@
+{"ds": "rr_led", "method": "XGBoost_spw", "repeat": 2, "fold": 3, "fit_s": 0.023812666011508554, "pred_s": 0.0006792499916628003, "ok": true}

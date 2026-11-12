@@ -1,0 +1,1 @@
+{"ds": "mushrooms", "method": "RF_balanced", "repeat": 2, "fold": 4, "fit_s": 10.507646000012755, "pred_s": 0.29524024997954257, "ok": true}

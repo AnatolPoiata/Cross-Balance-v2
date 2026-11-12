@@ -1,0 +1,1 @@
+{"ds": "rr_boundary", "method": "RUSBoost", "repeat": 0, "fold": 4, "ok": false, "error": "ValueError('BaseClassifier in AdaBoostClassifier ensemble is worse than random, ensemble can not be fit.')"}

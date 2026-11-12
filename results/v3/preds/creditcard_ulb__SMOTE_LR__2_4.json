@@ -1,0 +1,1 @@
+{"ds": "creditcard_ulb", "method": "SMOTE_LR", "repeat": 2, "fold": 4, "fit_s": 2.1860956249875017, "pred_s": 0.015127249993383884, "ok": true}

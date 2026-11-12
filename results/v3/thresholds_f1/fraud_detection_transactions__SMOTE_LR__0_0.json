@@ -1,0 +1,1 @@
+{"ds": "fraud_detection_transactions", "method": "SMOTE_LR", "repeat": 0, "fold": 0, "threshold": 0.43995687582731374, "ok": true, "seconds": 0.8613891249988228}

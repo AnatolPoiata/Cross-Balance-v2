@@ -1,0 +1,1 @@
+{"ds": "syn_95-5", "method": "LightGBM", "repeat": 1, "fold": 2, "fit_s": 1.3471239169884939, "pred_s": 0.32345475000329316, "ok": true}

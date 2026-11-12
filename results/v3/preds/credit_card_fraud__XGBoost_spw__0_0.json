@@ -1,0 +1,1 @@
+{"ds": "credit_card_fraud", "method": "XGBoost_spw", "repeat": 0, "fold": 0, "fit_s": 1.1580045000009704, "pred_s": 0.035813666007015854, "ok": true}

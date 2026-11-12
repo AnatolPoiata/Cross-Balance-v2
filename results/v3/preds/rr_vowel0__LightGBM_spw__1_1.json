@@ -1,0 +1,1 @@
+{"ds": "rr_vowel0", "method": "LightGBM_spw", "repeat": 1, "fold": 1, "fit_s": 0.10245562499039806, "pred_s": 0.003234875010093674, "ok": true}

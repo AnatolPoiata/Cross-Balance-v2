@@ -1,0 +1,1 @@
+{"ds": "fraud_detection_transactions", "method": "SPE", "repeat": 0, "fold": 4, "fit_s": 1.9568037500139326, "pred_s": 0.02840925002237782, "ok": true}

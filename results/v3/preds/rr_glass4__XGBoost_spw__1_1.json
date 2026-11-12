@@ -1,0 +1,1 @@
+{"ds": "rr_glass4", "method": "XGBoost_spw", "repeat": 1, "fold": 1, "fit_s": 0.02588275002199225, "pred_s": 0.0004040840140078217, "ok": true}

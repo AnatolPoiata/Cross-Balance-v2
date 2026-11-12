@@ -1,0 +1,1 @@
+{"ds": "rr_vowel0", "method": "XGBoost_spw", "repeat": 2, "fold": 3, "threshold": 0.985267162322998, "ok": true, "seconds": 0.15902337501756847}

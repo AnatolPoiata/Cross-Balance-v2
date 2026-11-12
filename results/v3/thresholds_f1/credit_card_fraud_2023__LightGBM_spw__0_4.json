@@ -1,0 +1,1 @@
+{"ds": "credit_card_fraud_2023", "method": "LightGBM_spw", "repeat": 0, "fold": 4, "threshold": 0.717747346753564, "ok": true, "seconds": 5.538016790989786}

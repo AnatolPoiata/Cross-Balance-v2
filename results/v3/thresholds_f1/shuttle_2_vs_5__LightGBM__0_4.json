@@ -1,0 +1,1 @@
+{"ds": "shuttle_2_vs_5", "method": "LightGBM", "repeat": 0, "fold": 4, "threshold": 0.9999672557205732, "ok": true, "seconds": 0.06944529199972749}

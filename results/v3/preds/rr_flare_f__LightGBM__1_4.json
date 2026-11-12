@@ -1,0 +1,1 @@
+{"ds": "rr_flare_f", "method": "LightGBM", "repeat": 1, "fold": 4, "fit_s": 0.050521958008175716, "pred_s": 0.0073532079986762255, "ok": true}

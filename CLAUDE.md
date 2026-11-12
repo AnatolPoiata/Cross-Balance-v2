@@ -79,11 +79,59 @@ synthetic tuning suite (writes `results/threshold_tuning.txt`):
 ./.venv/bin/python -m benchmarks.tune_thresholds
 ```
 
+Sweep `ratio` in `{1,2,3,4,5}` against the same held-out suite, thresholds held
+fixed (writes `results/ratio_tuning.txt`):
+```bash
+./.venv/bin/python -m benchmarks.tune_ratio
+```
+
+Regenerate the article's summary figures (iteration-progression line chart, ranked
+method comparison, full-scale-vs-subsampled comparison, tier-ladder and
+architecture diagrams) into `article/figures/`:
+```bash
+./.venv/bin/python -m article.make_figures
+```
+
+Export the article to Word (pandoc doesn't render Mermaid, so the mermaid fence in
+`draft2.md` must first be swapped for `figures/architecture.png` in a throwaway
+copy — see `article/draft2_docx_src.md` for the last-generated one, or redo the
+swap after editing `draft2.md`):
+```bash
+pandoc article/draft2_docx_src.md -o article/Cross-Balance_draft2.docx \
+  --resource-path=article --from=markdown+tex_math_dollars --toc --toc-depth=2
+```
+
 Large runs (`real:all`, `synthetic:all`) can take minutes; launch with
 `nohup ... & disown` and poll the process rather than blocking foreground Bash,
 since long-running foreground/background tool calls in this environment have been
 observed to get killed on their own timeout even when the underlying process is
 still healthy.
+
+## v3 (October 2026) — read this first
+
+The library defaults changed in v0.2.0 (see `article/RESEARCH_PLAN.md`):
+`ensemble_type='self_paced'`, `base_estimator='mixed'` (alternating
+HistGB / ExtraTrees), `ratio=4.0`, `weighting='uniform'`,
+`calibration='prior'`, `decision_threshold=0.5` (or `'f1'`). The
+iteration-7 config is `LEGACY_V2_PARAMS` and reproduces old results
+bit-for-bit. `test_defaults_match_validated_config` pins the v0.2 defaults.
+
+Evaluation discipline: the v0.2 design was frozen on the development
+datasets only (`results/v3_devgrid/`). `real_datasets.HOLDOUT_DATASETS`
+(ULB `creditcard_ulb` + 16 `rr_*` Park & Im sets) were first loaded after
+the freeze. **Do not tune anything on hold-out results.** Choose new
+components on `DEVELOPMENT_DATASETS` and report hold-out once.
+
+Pipeline: `benchmarks.run_v3` (one `.json` + `.npz` of test-fold predictions
+per (dataset, method, repeat, fold) in `results/v3/preds/`; resumable,
+since completed jobs are skipped) → `benchmarks.analyze_v3` (metrics, Friedman /
+Nemenyi / Wilcoxon-Holm, ablation, ULB cost analysis) →
+`benchmarks.analyze_v3 --article` → `article.make_figures_v3` → `article.build_article` (EN + RO ECOFORUM
+.docx from `docx_builder.py` + `text_front.py`; all results numbers are
+read from `results/v3/analysis_article`, never typed; the article presents the method as new, so the legacy v2 config is excluded there). `benchmarks/spe.py` is a
+port of Self-paced Ensemble, because `imbalanced-ensemble` cannot be installed:
+it pins scikit-learn < 1.7 and **silently downgraded the venv once**. If
+you install anything, re-check `sklearn.__version__ == 1.9.0`.
 
 ## Architecture
 
@@ -125,10 +173,15 @@ still healthy.
   majority:minority percentage pairs that sum to 100 (`"99-1"`, `"98-2"`,
   `"95-5"`) — an earlier version used `"99-2"`/`"99-5"`, which was wrong, and got
   renamed; don't reintroduce mismatched pairs.
-- `real_datasets.py` — loaders for the real-world datasets in `DATA_SOURCES.md`,
-  plus `stratified_subsample()` for capping huge datasets while preserving class
-  ratio (with a minority-count floor so extreme-imbalance sets still have enough
-  positives for k-fold CV).
+- `real_datasets.py` — loaders for the real-world datasets in `DATA_SOURCES.md`
+  (fraud/crime/telemetry datasets from the original benchmark plus four UCI
+  datasets added during extended validation: `default_credit_card_clients`,
+  `mammographic`, `mushrooms`, `bank_marketing`), plus `stratified_subsample()`
+  for capping huge datasets while preserving class ratio (with a minority-count
+  floor so extreme-imbalance sets still have enough positives for k-fold CV).
+  `_drop_id_like_columns`'s all-unique-values heuristic only applies to
+  non-float columns — a naturally all-unique continuous feature (e.g.
+  transaction `amount`) must not be dropped as if it were an ID column.
 - `metrics.py` — AUCPR, precision/recall, macro-F1, G-mean, MCC, balanced
   accuracy.
 - `report.py` — writes `results_summary.csv`, `report.html`, and `pr_curves.png`
@@ -137,13 +190,17 @@ still healthy.
   Note: the PR curve legend's AP is computed on **pooled** out-of-fold
   predictions, while `results_summary.csv`'s `aucpr_mean` is the **mean of
   per-fold** AUCPR — these are both valid but not numerically identical, and can
-  diverge noticeably on small datasets (see `article/draft.md` §5.4/§7 for a
+  diverge noticeably on small datasets (see `article/draft2.md` §5.4/§7 for a
   worked example on the 1,994-row Communities & Crime dataset).
 - `run_benchmark.py` — CLI entry point tying the above together with
   `StratifiedKFold`; every (dataset × method × fold) exception is caught and
   logged rather than crashing the run.
 - `tune_thresholds.py` — independent threshold search for
   `auto_density_thresholds` (see below).
+- `tune_ratio.py` — same held-out tuning suite and constants (imported from
+  `tune_thresholds.py`), sweeping `ratio` instead with thresholds held fixed at
+  their tuned value. Confirmed `ratio=2.0` (used unchanged since the original
+  prototype, never previously tested) was already the best choice.
 
 ### Iteration workflow (`results/`)
 
@@ -156,9 +213,17 @@ before assuming what the "current" configuration is or should be.
 (pre-iteration) baseline run. An iteration is only adopted as the library's
 shipped default if it's a validated net improvement over the prior best; negative
 results (an iteration that regresses more than it improves) are still committed
-and reported, not discarded — see iteration 6 in `article/draft.md` for the
+and reported, not discarded — see iteration 6 in `article/draft2.md` for the
 canonical example, and iteration 7 for how its regression was partly resolved by
 tuning thresholds independently rather than reverting the idea outright.
+
+`results/iteration_7_fullsize/` holds the extended-validation reruns of the
+shipped (iteration 7) config, unchanged, at true full scale — the actual
+568,630 / 1,852,394 / 6,362,620 rows for the three largest fraud datasets,
+not the 50,000-row `stratified_subsample()` used everywhere else. This is where
+Cross-Balance's win over Balanced Random Forest reverses on PaySim (see
+`max_chunk_size` above) — a limitation invisible in every other results
+directory, which all use the subsampled comparison.
 
 ### Tests (`tests/`)
 
@@ -169,6 +234,27 @@ what the library ships as defaults, update this test deliberately — a failure
 here means either the change was unintentional or the test needs updating to
 reflect a newly-validated config, not that the test is wrong.
 
+### The article (`article/`)
+
+- `draft.md` is the original full draft (Phase C + extended validation, prose and
+  tables only). `draft2.md` is a from-scratch rewrite with the same verified
+  numbers plus diagrams/graphics woven in — a Mermaid flowchart of the fit-time
+  pipeline (§3), and four matplotlib figures generated by `make_figures.py`
+  (iteration-progression line chart, ranked 11-method bar chart, full-scale-vs-
+  subsampled grouped bars, density-tier-ladder diagram), on top of the three
+  `pr_curves.png` figures `benchmarks/report.py` already produces per dataset.
+  Treat `draft.md` as superseded prose-only history, `draft2.md` as current.
+- `make_figures.py` reuses the exact palette constants from
+  `benchmarks/report.py::plot_pr_curves` (`_BLUE`/`_RED`/`_OTHER_GRAY`/ink and
+  gridline tokens) so the new charts match the existing PR-curve figures. Every
+  number plotted is copied from the `results/` CSVs it cites in-line, not
+  retyped from memory — verify against source before editing.
+- `Cross-Balance_draft2.docx` is a pandoc export of `draft2.md` for readers who
+  want Word rather than Markdown. Pandoc can't render the Mermaid fence, so the
+  actual conversion source is `draft2_docx_src.md` (same content, Mermaid block
+  replaced by `figures/architecture.png`) — regenerate that swap after editing
+  `draft2.md`'s method section before re-exporting (see Commands above).
+
 ## Data sources
 
 Real-world datasets are not committed (`data/raw/` is gitignored). See
@@ -176,5 +262,5 @@ Real-world datasets are not committed (`data/raw/` is gitignored). See
 documented schema caveats (e.g. `credit_card_fraud` ended up being a different
 Kaggle dataset than originally planned, and its loader was written for the
 schema that's actually there). `REFERENCES.md` tracks external reading material
-for `article/draft.md`, separate from the ~239-paper corpus in `references/`
+for the article, separate from the ~239-paper corpus in `references/`
 (gitignored, copied from the archived v1 project).

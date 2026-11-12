@@ -1,0 +1,1 @@
+{"ds": "fraud_detection_transactions", "method": "RUSBoost", "repeat": 1, "fold": 2, "fit_s": 0.17082962501444854, "pred_s": 0.0029343330243136734, "ok": true}

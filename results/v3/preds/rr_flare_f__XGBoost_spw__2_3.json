@@ -1,0 +1,1 @@
+{"ds": "rr_flare_f", "method": "XGBoost_spw", "repeat": 2, "fold": 3, "fit_s": 0.04655658401316032, "pred_s": 0.0010788750078063458, "ok": true}

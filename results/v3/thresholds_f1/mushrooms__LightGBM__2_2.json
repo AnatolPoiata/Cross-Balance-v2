@@ -1,0 +1,1 @@
+{"ds": "mushrooms", "method": "LightGBM", "repeat": 2, "fold": 2, "threshold": 0.39548130970777884, "ok": true, "seconds": 5.884739083005115}

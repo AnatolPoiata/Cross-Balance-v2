@@ -1,0 +1,1 @@
+{"ds": "rr_oil", "method": "LightGBM", "repeat": 2, "fold": 4, "fit_s": 0.22974541698931716, "pred_s": 0.005210790986893699, "ok": true}

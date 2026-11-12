@@ -1,0 +1,1 @@
+{"ds": "credit_card_fraud", "method": "CrossBalance_v3", "repeat": 1, "fold": 4, "fit_s": 5.724925374990562, "pred_s": 0.9810622920049354, "ok": true}

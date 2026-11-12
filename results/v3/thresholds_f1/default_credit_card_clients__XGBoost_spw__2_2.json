@@ -1,0 +1,1 @@
+{"ds": "default_credit_card_clients", "method": "XGBoost_spw", "repeat": 2, "fold": 2, "threshold": 0.5735533237457275, "ok": true, "seconds": 2.5641605419805273}

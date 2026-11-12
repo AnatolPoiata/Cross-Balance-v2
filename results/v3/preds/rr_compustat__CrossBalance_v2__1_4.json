@@ -1,0 +1,1 @@
+{"ds": "rr_compustat", "method": "CrossBalance_v2", "repeat": 1, "fold": 4, "fit_s": 5.184346791007556, "pred_s": 0.15507666699704714, "ok": true}
