@@ -8,11 +8,7 @@ dist/
 .venv/
 venv/
 
-# Data (raw downloads and generated caches are not committed)
-data/raw/*
-!data/raw/.gitkeep
-data/processed/*
-!data/processed/.gitkeep
+# Project datasets are versioned with Git LFS (see .gitattributes).
 
 # Large generated artifacts (PR curve PNGs ARE tracked -- article/draft.md
 # embeds specific ones directly, and they're small enough to commit)
@@ -25,3 +21,6 @@ references/
 # OS
 .DS_Store
 ._*
+
+# Keep processed dataset files despite the generated-artifact rule above.
+!data/**/*.parquet
